@@ -97,3 +97,5 @@ These are infrastructure and workflow checks using isolated fixtures. They do no
 ## License
 
 [MIT](LICENSE). Dependency and reference notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+The dashboard has four separate views: overview, research progress, results, and tools/references. Navigation supports direct links and browser back. Progress counts verified final handover as preparation evidence while preserving legacy task handoff gaps in the stage notes. A changed delivery or a newer review reopens verification.

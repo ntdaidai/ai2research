@@ -128,7 +128,7 @@ class ShowcaseTest(unittest.TestCase):
             response = connection.getresponse()
             self.assertEqual(response.status, 200)
             self.assertIn("script-src 'self'", response.getheader("Content-Security-Policy"))
-            self.assertIn("每一步探索".encode(), response.read())
+            self.assertIn("研究总览".encode(), response.read())
             connection.request("GET", "/api/snapshot?project=paused")
             self.assertEqual(json.loads(connection.getresponse().read())["project"]["execution_state"], "paused")
             connection.request("GET", "/api/artifact?" + urlencode({"project": "research", "id": artifact["artifact_id"]}))

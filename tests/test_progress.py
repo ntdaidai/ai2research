@@ -214,10 +214,31 @@ class ProgressTest(unittest.TestCase):
         progress = showcase.snapshot("study")["project"]["progress"]
         self.assertEqual(progress["completed_stages"],12)
         self.assertEqual(progress["focus_stage"],"delivery")
+        # Old preparation tickets can lag behind the verified final handover.
+        with workspace._db() as db:
+            row = db.execute("SELECT payload FROM workflow_tasks WHERE task_id='implementation'").fetchone()
+            ticket = json.loads(row[0])
+            ticket["state"] = "pending"
+            db.execute("UPDATE workflow_tasks SET payload=? WHERE task_id='implementation'", (json.dumps(ticket),))
+        database = Path(self.tmp.name, "state.sqlite3")
+        before = database.read_bytes()
+        accepted = showcase.snapshot("study")["project"]["progress"]
+        self.assertEqual(accepted["completed_stages"], 12)
+        preparation = next(s for s in accepted["stages"] if s["id"] == "preparation")
+        self.assertIn("历史准备任务交接 2/3", preparation["notes"][0])
+        self.assertTrue(all(c["done"] for c in preparation["checks"]))
+        self.assertEqual(database.read_bytes(), before)
+        paper_path = self.root / pdf["path"]
+        unchanged_pdf = paper_path.read_bytes()
+        paper_path.write_bytes(b"changed after accepted delivery")
+        self.assertEqual(self.stages()["preparation"]["state"], "needs_check")
+        paper_path.write_bytes(unchanged_pdf)
+        self.assertEqual(showcase.snapshot("study")["project"]["progress"]["completed_stages"], 12)
         state.record("review_packet",{"packet_id":"new","stage":"experiment"},"study")
         reopened = showcase.snapshot("study")["project"]["progress"]
         self.assertLess(reopened["completed_stages"],12)
         self.assertNotEqual(self.stages()["delivery"]["state"],"completed")
+        self.assertEqual(self.stages()["preparation"]["state"], "needs_check")
 
 
 if __name__ == "__main__":

@@ -79,7 +79,7 @@ function renderProgress(project) {
   $("overall-progress").max = progress?.total_stages || 12;
   $("overall-progress").value = progress?.completed_stages || 0;
   $("progress-attention").textContent = progress?.paused ? "项目已暂停" : progress?.attention_stages ? `${progress.attention_stages} 个环节待处理` : "";
-  $("progress-caption").textContent = progress ? "点击任意环节，查看已经做了什么、还需要什么。" : "开始一个研究项目后，这里就会显示完整进展。";
+  $("progress-caption").textContent = progress ? "选择环节查看完成依据。" : "尚无研究项目。";
   const children = [];
   const groups = [["发现方向", "book"], ["实验验证", "flask"], ["形成成果", "file"]];
   stages.forEach((stage, index) => {
@@ -108,8 +108,6 @@ function renderProgress(project) {
   selectedProject = project.id;
   $("progress-detail").hidden = !stages.length;
   if (desired) renderStage(desired);
-  $("goto-current").disabled = !stages.length;
-  $("jump-current").disabled = !stages.length;
   renderJourney(project);
 }
 
@@ -118,7 +116,10 @@ function renderJourney(project) {
   const completed = progress?.completed_stages || 0;
   const total = progress?.total_stages || 12;
   $("hero-progress").textContent = progress ? `${completed} / ${total}` : "待开始";
-  $("hero-progress-label").textContent = progress ? "环节已有完成依据" : "从一个好问题出发";
+  $("hero-progress-label").textContent = progress ? "环节已完成" : "尚无项目";
+  const finished = progress && completed === total;
+  $("overview-status").textContent = finished ? "全过程已完成" : progress?.paused ? "研究已暂停" : progress ? `${completed} 个环节已完成` : "等待开始";
+  $("overview-caption").textContent = finished ? "实验与稿件双审通过，正式成果已交付。" : progress?.next_action || "在研究对话中给出方向或论文以创建项目。";
   const ring = $("hero-ring");
   const circumference = 2 * Math.PI * 65;
   const offset = circumference * (1 - completed / total);
@@ -195,7 +196,8 @@ function renderRuns(project) {
 function renderOutputs(project) {
   const list = $("output-list");
   list.replaceChildren();
-  const labels = {paper:["论文草稿","file"], diagram:["方法结构图","node"], figure:["实验图表","layers"]};
+  const accepted = project.progress?.stages.find(s => s.id === "manuscript_review")?.state === "completed";
+  const labels = {paper:[accepted ? "论文终稿" : "论文草稿","file"], diagram:["方法结构图","node"], figure:["实验图表","layers"]};
   project.outputs.forEach(output => {
     const [label, glyph] = labels[output.category];
     const link = element("a", "output-link");
@@ -238,17 +240,17 @@ function renderReviews(project) {
   if (focus && !paused) { title = `${focus.title} · ${focus.state_label}`; description = focus.summary; }
   $("focus-title").textContent = title;
   $("focus-description").textContent = description;
-  $("focus-next").textContent = project.progress?.next_action || "在研究对话中给出一个领域或几篇论文，开始第一个项目。";
-  $("copy-label").textContent = project.id ? (paused ? "复制查看进展指令" : "复制继续研究指令") : "复制开始研究指令";
-  $("guide-start").textContent = project.id ? "带我查看当前进展" : "复制开始研究模板";
+  const finished = project.progress?.completed_stages === project.progress?.total_stages && Boolean(project.progress);
+  $("copy-label").textContent = project.id ? (finished ? "复制项目交接指令" : paused ? "复制查看进展指令" : "复制继续研究指令") : "复制开始研究指令";
   const rows = $("review-summary");
   rows.replaceChildren();
   const stageLabels = {experiment:"实验评审", manuscript:"稿件评审", framework:"框架评审"};
   const reviewLabels = {revision_requested:"有修订意见", awaiting_reviews:"等待评审", reviews_recorded:"意见已留存"};
   project.reviews.slice(0, 2).forEach(record => {
+    const accepted = project.progress?.stages.find(s => s.id === `${record.stage}_review`)?.state === "completed";
     const row = element("div", "review-row");
     row.append(element("span", "", stageLabels[record.stage] || "评审记录"),
-      element("span", `review-status${record.recorded_status === "revision_requested" ? "" : " neutral"}`, reviewLabels[record.recorded_status]));
+      element("span", `review-status${accepted ? " accepted" : record.recorded_status === "revision_requested" ? "" : " neutral"}`, accepted ? "已验收" : reviewLabels[record.recorded_status] || "待核对"));
     rows.append(row);
   });
   if (!project.reviews.length) {
@@ -267,8 +269,11 @@ function renderActivity(project) {
     const item = element("article", "activity-entry");
     const time = element("time", "", date(entry.time));
     time.dateTime = entry.time;
-    item.append(time, element("h3", "", `${entry.category} · ${entry.action}`), element("p", "", entry.message || "一条新的研究记录已保存。"));
-    if (entry.message) item.title = entry.message;
+    item.append(time, element("h3", "", `${entry.category} · ${entry.action}`));
+    if (entry.message) {
+      item.append(element("p", "", entry.message));
+      item.title = entry.message;
+    }
     list.append(item);
   });
   if (!project.activity.length) list.append(element("p", "empty-inline", "还没有研究足迹。"));
@@ -360,21 +365,22 @@ function render(data) {
     artifact_count:0, outputs:[], reviews:[], activity:[], jobs:[], task_counts:{}};
   if (!data.project) {
     picker.append(element("option", "", "等待第一个研究项目"));
-    showNotice("还没有研究项目。打开使用指南，复制开始研究模板，在研究对话中填入你的方向即可。");
+    showNotice("还没有研究项目。在研究对话中给出方向或论文即可开始。");
   } else {
     picker.value = project.id;
   }
   $("project-id").textContent = project.id || "尚无项目";
   const state = $("project-state");
   state.className = "state-tag";
-  state.textContent = !project.id ? "等待开始" : project.execution_state === "paused" ? "已暂停" : "研究中";
+  const finished = project.progress && project.progress.completed_stages === project.progress.total_stages;
+  state.textContent = !project.id ? "等待开始" : project.execution_state === "paused" ? "已暂停" : finished ? "已交付" : "研究中";
   if (project.execution_state === "paused") state.classList.add("paused");
   if (project.evidence_kind === "toolchain_test") {state.textContent = "工具验收"; state.classList.add("test");}
   number("stat-total", project.jobs_total);
   number("stat-completed", project.job_counts.completed || 0);
   number("stat-artifacts", project.artifact_count);
   number("stat-running", project.running_jobs);
-  $("running-note").textContent = project.running_jobs ? "含排队与评价" : "暂无运行记录";
+  $("running-note").textContent = project.running_jobs ? "含排队与评价" : "暂无运行任务";
   renderProgress(project);
   renderRuns(project);
   renderOutputs(project);
@@ -429,16 +435,30 @@ $("about-dialog").addEventListener("click", event => {if (event.target === $("ab
 function jumpToCurrent() {
   const focus = current?.project?.progress?.focus_stage;
   if (!focus) return;
-  setNavigation("#research-progress");
+  location.hash = "progress";
+  setNavigation();
   renderStage(focus);
   $("progress-detail").scrollIntoView({behavior:reducedMotion.matches ? "instant" : "smooth", block:"start"});
   $("stage-title").setAttribute("tabindex", "-1");
   $("stage-title").focus({preventScroll:true});
 }
-function setNavigation(href) {
-  document.querySelectorAll(".nav a").forEach(link => link.classList.toggle("nav-active", link.getAttribute("href") === href));
+function setNavigation() {
+  const aliases = {"research-progress":"progress", outputs:"results", experiments:"results"};
+  let page = location.hash.slice(1) || "overview";
+  page = aliases[page] || page;
+  if (!["overview", "progress", "results", "resources"].includes(page)) page = "overview";
+  document.querySelectorAll("[data-page]").forEach(view => { view.hidden = view.dataset.page !== page; });
+  document.querySelectorAll(".nav a").forEach(link => {
+    const active = link.hash === `#${page}`;
+    link.classList.toggle("nav-active", active);
+    if (active) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+  const heading = document.querySelector(`[data-page="${page}"] h1`);
+  document.title = `${heading.textContent} · ai2research`;
+  window.scrollTo({top:0, behavior:"instant"});
 }
-document.querySelectorAll(".nav a").forEach(link => link.addEventListener("click", () => setNavigation(link.getAttribute("href"))));
+window.addEventListener("hashchange", setNavigation);
 document.querySelectorAll("[data-resource-tab]").forEach(button => {
   button.addEventListener("click", () => selectResourceTab(button.dataset.resourceTab));
   button.addEventListener("keydown", event => {
@@ -456,6 +476,7 @@ function researchCommand() {
   const project = current?.project;
   if (!project) return "我想开展一个研究项目。研究领域：[填写领域]。目标与要求：[填写研究问题、可用算力和预期成果]。请先核查已有项目，再从选题、论文与官方代码筛选开始，给出可推进的实验方案；按真实记录更新研究进展。";
   if (project.execution_state === "paused") return `请查看 ai2research 项目“${project.title}”（${project.id}）的进展，保留暂停状态，先总结已有成果、缺项与下一步，不启动新的实验。`;
+  if (project.progress?.completed_stages === project.progress?.total_stages) return `请查看已交付的 ai2research 项目“${project.title}”（${project.id}），核对当前正式交付和双审记录，提供成果与复现材料的位置。保留已有研究和历史任务记录，无需重新开展实验。`;
   const focus = project.progress.stages.find(s => s.id === project.progress.focus_stage);
   return `继续 ai2research 项目“${project.title}”（${project.id}）。请先核对已有状态。当前重点：${focus?.title || "研究进展"}；${focus?.summary || ""}。接下来：${project.progress.next_action}请沿用已有授权和预算，保留已登记的作业与证据，完成后更新真实研究进展。`;
 }
@@ -474,17 +495,10 @@ async function copyResearchCommand() {
     $("command-text").select();
   }
 }
-$("goto-current").addEventListener("click", jumpToCurrent);
 $("jump-current").addEventListener("click", jumpToCurrent);
 document.querySelectorAll(".guide-trigger").forEach(button => button.addEventListener("click", () => $("guide-dialog").showModal()));
 document.querySelectorAll(".dialog-close").forEach(button => button.addEventListener("click", () => $(button.dataset.dialog).close()));
-$("guide-start").addEventListener("click", () => {
-  $("guide-dialog").close();
-  if (current?.project) jumpToCurrent();
-  else copyResearchCommand();
-});
 $("copy-current").addEventListener("click", copyResearchCommand);
-$("copy-guide").addEventListener("click", copyResearchCommand);
 $("present").addEventListener("click", async () => {
   try {
     if (document.fullscreenElement) await document.exitFullscreen();
@@ -492,6 +506,7 @@ $("present").addEventListener("click", async () => {
   } catch { document.body.classList.toggle("screen-focus"); }
 });
 document.addEventListener("fullscreenchange", () => {document.body.classList.toggle("screen-focus", Boolean(document.fullscreenElement)); $("present").setAttribute("aria-label", document.fullscreenElement ? "退出全屏展示" : "全屏展示");});
+setNavigation();
 load();
 
 // Only synchronize visible local records; no remote polling or model calls.

@@ -206,14 +206,25 @@ def project_progress(db, directory, manifest, project, artifacts, jobs, reviews)
 
     proposals = db.execute("SELECT COUNT(*) FROM events WHERE project=? AND kind='experiment_proposal'", (project_id,)).fetchone()[0]
     approvals = db.execute("SELECT COUNT(*) FROM events WHERE project=? AND kind='experiment_approval'", (project_id,)).fetchone()[0]
+    deliveries = events("delivery_exported")
+    delivery = deliveries[-1] if deliveries else {}
+    finalized_stages = finalized_delivery(files, delivery, reviews)
+    delivered = {"experiment", "manuscript"}.issubset(finalized_stages)
     preparation = [t for t in tasks if t.get("role") in {"method_designer", "implementation", "evaluation"}]
     preparation_done = sum(task_valid(t) for t in preparation)
+    handoff_complete = bool(preparation) and preparation_done == len(preparation)
+    accepted_preparation = bool(delivered and successful and proposals and approvals)
+    preparation_gap = preparation_done < len(preparation)
     preparation_checks = [check("实验方案已冻结", proposals, f"{proposals} 份冻结方案"), check("执行范围已有批准记录", approvals),
-        check("方法、基线与评价准备已交接", preparation and preparation_done == len(preparation), f"{preparation_done}/{len(preparation)} 项")]
+        check("准备交接或正式交付验收有效", handoff_complete or accepted_preparation,
+              "正式双审与交付验收已核实" if accepted_preparation else f"{preparation_done}/{len(preparation)} 项交接")]
     add("preparation", "实验准备", "code", preparation_checks,
-        f"冻结方案 {proposals} 份 · 准备交接 {preparation_done}/{len(preparation)} 项", "按已有代码和方案补齐阶段交接；已有实验无需重跑。",
-        state="needs_check" if successful and preparation_done < len(preparation) else None,
-        notes=["实际已有实验结果，部分准备任务仍待交接；页面未代填完成。"] if successful and preparation_done < len(preparation) else [])
+        f"冻结方案 {proposals} 份 · " + ("准备结果已随正式交付验收" if accepted_preparation else f"准备交接 {preparation_done}/{len(preparation)} 项"),
+        "实验准备已验收，可查看交付成果。" if accepted_preparation else "按已有代码和方案补齐阶段交接；已有实验无需重跑。",
+        state="needs_check" if successful and preparation_gap and not accepted_preparation else None,
+        notes=[f"历史准备任务交接 {preparation_done}/{len(preparation)} 项，任务板保留原状态。当前准备结果以文件一致性通过核验的正式双审与交付为完成依据。"]
+              if preparation_gap and accepted_preparation else ["实际已有实验结果，部分准备任务仍待交接；页面未代填完成。"]
+              if successful and preparation_gap else [])
 
     counts = Counter(j["state"] for j in jobs)
     running = sum(counts[s] for s in ACTIVE)
@@ -231,10 +242,6 @@ def project_progress(db, directory, manifest, project, artifacts, jobs, reviews)
         check("消融结果已归档", phases["ablation"], f"{len(phases['ablation'])} 次"), check("独立复核任务已完成交接", independent)],
         f"{len(phases['verification'])} 次确认 · {len(phases['ablation'])} 次消融 · {len(independent)} 项独立复核交接",
         "完成独立确认与关键消融，保留负结果和复核意见。")
-
-    deliveries = events("delivery_exported")
-    delivery = deliveries[-1] if deliveries else {}
-    finalized_stages = finalized_delivery(files, delivery, reviews)
 
     def review_stage(identifier, title, stage):
         record = next((r for r in reviews if r["stage"] == stage), None)
@@ -281,10 +288,9 @@ def project_progress(db, directory, manifest, project, artifacts, jobs, reviews)
     review_stage("manuscript_review", "稿件审查", "manuscript")
 
     missing = delivery.get("missing", [])
-    delivered = {"experiment", "manuscript"}.issubset(finalized_stages)
     add("delivery", "成果交付", "layers", [check("交付包已生成", delivery), check("交付记录无缺项", delivery and not missing),
         check("归档、当前文件与双审验收记录一致", delivered)],
-        f"{'已有交付包' if delivery else '尚未生成交付包'}" + (f" · {len(missing)} 项未满足" if missing else ""),
+        ("正式交付已验收" if delivered else "已有交付包" if delivery else "尚未生成交付包") + (f" · {len(missing)} 项未满足" if missing else ""),
         "核对当前代码、结果、图表、稿件和双审覆盖后，生成正式交付包。",
         state="completed" if delivered else "needs_check" if delivery else "pending", notes=["已有归档不等于当前版本已完成交付验收。"] if delivery and not delivered else [])
 
@@ -294,6 +300,8 @@ def project_progress(db, directory, manifest, project, artifacts, jobs, reviews)
     revisions = [s for s in attention if s["state"] == "revision"]
     focus = (revisions or active or attention or [s for s in stages if s["state"] != "completed"] or stages)[0]
     if completed == len(stages):
+        for stage in stages:
+            stage["next_action"] = "本环节已完成，可在成果页查看正式论文、图表与实验记录。"
         focus = stages[-1]
         focus["next_action"] = "全部环节已有完成依据，可查看当前成果与复现材料。"
     if completed < len(stages):
