@@ -10,4 +10,3 @@
   {"id": "paper", "name": "初稿", "evidence": ["paper/draft.tex", "paper/references.bib"]},
   {"id": "audit", "name": "证据审计", "evidence": ["audit/checklist.md", "audit/claim_map.csv"]}
 ]
-
