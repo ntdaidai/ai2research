@@ -1,0 +1,19 @@
+{
+  "project_name": "",
+  "research_question": "",
+  "field": "",
+  "seed_papers": [],
+  "datasets": [],
+  "primary_metric": {
+    "name": "",
+    "direction": "maximize"
+  },
+  "baseline_repository": "",
+  "budget": {
+    "gpu_hours": 0,
+    "api_usd": 0,
+    "max_idea_trials": 0
+  },
+  "target_venue": ""
+}
+

@@ -1,0 +1,35 @@
+[project]
+id = "paper-research"
+state_dir = ".local/state"
+
+[remote]
+host = "localhost"
+port = 22
+user = "researcher"
+allowed_home = "/home/researcher"
+workspace = "/home/researcher/.research-harness"
+python = "python3"
+
+[gpu]
+allowed_indices = [0]
+reserve_memory_mb = 1024
+max_utilization_percent = 10
+
+[review]
+provider = "openai-compatible"
+api_base = "https://api.example.com/v1"
+model = "deepseek-chat"
+key_env = "RESEARCH_REVIEW_API_KEY"
+max_calls = 2
+server_max_calls = 0
+max_output_tokens = 4096
+max_input_chars = 120000
+max_packet_chars = 110000
+enable_thinking = false
+timeout_seconds = 120
+
+[tools]
+arxiv_python = ".venv-arxiv/Scripts/python.exe"
+arxiv_python_posix = ".venv-arxiv/bin/python"
+docling_python = ".venv-docling/Scripts/python.exe"
+docling_python_posix = ".venv-docling/bin/python"

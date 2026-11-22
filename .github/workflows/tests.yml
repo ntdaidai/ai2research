@@ -1,0 +1,19 @@
+name: Framework checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v6
+      - name: Install locked Python environment
+        run: |
+          uv venv --python 3.14.4 .venv
+          uv pip sync --python .venv/bin/python requirements-harness.lock.txt
+      - name: Isolated regression tests
+        run: .venv/bin/python -B -m unittest discover -s tests -q

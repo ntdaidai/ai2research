@@ -1,0 +1,13 @@
+[
+  {"id": "topic", "name": "选题与文献", "evidence": ["topic/brief.md", "topic/literature.csv", "topic/decision.md"]},
+  {"id": "protocol", "name": "评价协议", "evidence": ["protocol/evaluation.md", "protocol/baselines.csv"]},
+  {"id": "baseline", "name": "基线复现", "evidence": ["baseline/manifest.json", "baseline/metrics.csv", "baseline/run.log"]},
+  {"id": "ideas", "name": "候选想法与筛选", "evidence": ["ideas/candidates.csv", "ideas/screening.csv", "ideas/decision.md"]},
+  {"id": "experiments", "name": "完整实验与调优", "evidence": ["experiments/manifest.json", "experiments/metrics.csv", "experiments/run.log"]},
+  {"id": "ablations", "name": "消融", "evidence": ["ablations/plan.md", "ablations/metrics.csv"]},
+  {"id": "final", "name": "锁定评估", "evidence": ["final/manifest.json", "final/metrics.csv", "final/analysis.md"]},
+  {"id": "figures", "name": "图表", "evidence": ["figures/figure_manifest.csv", "figures/figure1.pdf"]},
+  {"id": "paper", "name": "初稿", "evidence": ["paper/draft.tex", "paper/references.bib"]},
+  {"id": "audit", "name": "证据审计", "evidence": ["audit/checklist.md", "audit/claim_map.csv"]}
+]
+

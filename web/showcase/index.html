@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f5f7fc">
+  <meta name="description" content="ai2research 研究工作台：轻松看懂研究进展，知道接下来做什么。">
+  <title>ai2research · 研究工作台</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-mark" viewBox="0 0 32 32"><path d="m8 24 9-17h4L12 24m9 0 7-14"/><path d="M4 16a12 12 0 0 1 18-10" class="mark-orbit"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4Z"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 7a7 7 0 0 1 11-1l3 3M4 15l3 3a7 7 0 0 0 11-1"/></symbol>
+    <symbol id="i-full" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5v15M12 6C9 3 5 3 2 4v14c4-1 7 0 10 2 3-2 6-3 10-2V4c-3-1-7-1-10 2Z"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m7 7-5 5 5 5m10-10 5 5-5 5M14 3l-4 18"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v7L4 19a1.3 1.3 0 0 0 1 2h14a1.3 1.3 0 0 0 1-2l-6-9V3M7 15h10"/><path d="M10 18h.01M14 17h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h10"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V8Zm0 0v6h6M8 12h8m-8 4h6"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 10 5-10 5L2 8Zm-10 9 10 5 10-5M2 16l10 5 10-5"/></symbol>
+    <symbol id="i-node" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="16" y="16" width="6" height="6" rx="1"/><path d="M12 8v4M5 16v-4h14v4"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v.01"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 .5c0 2-2.5 2-2.5 4M12 17v.01"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m9 5 10 7-10 7Z"/></symbol>
+  </svg>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div class="shell">
+    <header class="header">
+      <a class="brand" href="/" aria-label="ai2research 首页"><span class="brand-mark"><svg><use href="#i-mark"/></svg></span><span>ai<span class="brand-two">2</span>research<span class="brand-period">.</span></span><span class="brand-caption">研究工作台</span></a>
+      <nav class="nav" aria-label="页面导航"><a class="nav-active" href="#overview">总览</a><a href="#research-progress"><span class="nav-long">研究进度</span><span class="nav-short">进度</span></a><a href="#outputs"><span class="nav-long">研究成果</span><span class="nav-short">成果</span></a><a href="#resources"><span class="nav-long">工具与资料</span><span class="nav-short">资料</span></a></nav>
+      <div class="header-tools"><button class="guide-trigger text-button" type="button"><svg><use href="#i-help"/></svg>使用指南</button><button class="icon-button" id="present" type="button" aria-label="全屏展示" title="全屏展示"><svg><use href="#i-full"/></svg></button></div>
+    </header>
+
+    <main id="main" aria-busy="true">
+      <section class="intro" id="overview" aria-labelledby="page-title">
+        <div class="intro-copy"><p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span> MAKE RESEARCH VISIBLE</p><h1 id="page-title">每一步探索，<br><span>都看得见进展。</span></h1><p class="intro-description">从选题到论文，清楚掌握现在做到哪、还缺什么，<br class="desktop-break">以及接下来值得做的事。</p><div class="intro-actions"><button class="primary-button" id="goto-current" type="button" disabled><svg><use href="#i-eye"/></svg>查看当前进展</button><button class="guide-trigger secondary-button" type="button">第一次使用？</button></div><p class="intro-note">真实研究记录 · 自动同步 · 随时回看</p></div>
+        <div class="intro-side">
+          <div class="project-picker"><label for="project">正在查看的研究</label><div class="project-selection"><div class="select-wrap"><select id="project" aria-label="选择研究项目" disabled><option>正在读取项目…</option></select><svg aria-hidden="true"><use href="#i-chevron"/></svg></div><button id="refresh" class="icon-button" type="button" aria-label="刷新项目记录" title="立即同步"><svg><use href="#i-refresh"/></svg></button></div><div class="project-meta"><span class="state-tag" id="project-state">正在读取</span><span class="mono" id="project-id">—</span></div></div>
+          <div class="journey-art">
+            <svg class="journey-svg" viewBox="0 0 480 270" role="img" aria-labelledby="journey-title">
+              <title id="journey-title">研究流程示意，中心显示实际完成的环节数</title>
+              <defs><linearGradient id="ring-ink" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7396ff"/><stop offset="1" stop-color="#3765e8"/></linearGradient><radialGradient id="art-aura"><stop offset="0" stop-color="#e6edff"/><stop offset="1" stop-color="#edf2ff" stop-opacity="0"/></radialGradient></defs>
+              <ellipse cx="250" cy="138" rx="202" ry="126" fill="url(#art-aura)" stroke="none"/>
+              <path class="art-route" d="M111 116C144 116 160 98 181 109M318 105C340 99 346 75 369 75M303 175C326 180 331 205 355 211"/>
+              <path class="art-flow" d="M111 116C144 116 160 98 181 109M318 105C340 99 346 75 369 75M303 175C326 180 331 205 355 211"/>
+              <g class="art-float float-paper"><g transform="rotate(-9 85 112)"><rect class="art-card" x="49" y="65" width="72" height="94" rx="13"/><rect x="65" y="85" width="28" height="8" rx="3" fill="#dce6ff" stroke="none"/><path class="art-writing" d="M65 105h39m-39 11h33m-33 11h39m-39 11h23"/></g><text class="art-label" x="82" y="188" text-anchor="middle">发现方向</text></g>
+              <g class="art-float float-chart"><g transform="rotate(7 394 75)"><rect class="art-card" x="350" y="35" width="91" height="75" rx="13"/><path class="art-writing" d="M365 51h29"/><rect x="367" y="81" width="11" height="13" rx="3" fill="#cedcff" stroke="none"/><rect x="384" y="68" width="11" height="26" rx="3" fill="#92b0ff" stroke="none"/><rect x="401" y="57" width="11" height="37" rx="3" fill="#527ef0" stroke="none"/></g><text class="art-label" x="398" y="139" text-anchor="middle">验证想法</text></g>
+              <g class="art-float float-result"><g transform="rotate(-4 396 211)"><rect class="art-card" x="352" y="182" width="91" height="58" rx="12"/><path d="m369 211 6 6 12-14" stroke="#4f8e83" stroke-width="2" fill="none"/><path class="art-writing" d="M397 201h30m-30 10h24m-24 10h29"/></g><text class="art-label" x="396" y="263" text-anchor="middle">形成成果</text></g>
+              <circle cx="250" cy="133" r="78" class="ring-halo"/><circle cx="250" cy="133" r="65" class="ring-base"/><circle id="hero-ring" cx="250" cy="133" r="65" stroke="url(#ring-ink)" stroke-dasharray="408.407" stroke-dashoffset="408.407" transform="rotate(-90 250 133)"/>
+              <text x="250" y="113" text-anchor="middle" class="art-ring-caption">研究总进度</text><text x="250" y="151" text-anchor="middle" class="art-ring-number" id="hero-progress">—</text><text x="250" y="178" text-anchor="middle" class="art-ring-caption" id="hero-progress-label">正在读取记录</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <div id="notice" class="notice" role="status" hidden></div>
+      <section class="stats" aria-label="项目概况">
+        <div class="stat"><span class="stat-symbol"><svg><use href="#i-flask"/></svg></span><div><span class="stat-label">实验提交</span><div class="stat-value" id="stat-total">—</div></div><span class="stat-note">保留每次尝试</span></div>
+        <div class="stat"><span class="stat-symbol success"><svg><use href="#i-check"/></svg></span><div><span class="stat-label">已完成运行</span><div class="stat-value" id="stat-completed">—</div></div><span class="stat-note">实验状态记录</span></div>
+        <div class="stat"><span class="stat-symbol violet"><svg><use href="#i-layers"/></svg></span><div><span class="stat-label">研究文件</span><div class="stat-value" id="stat-artifacts">—</div></div><span class="stat-note">最新登记版本</span></div>
+        <div class="stat"><span class="stat-symbol amber"><svg><use href="#i-clock"/></svg></span><div><span class="stat-label">运行与排队</span><div class="stat-value" id="stat-running">—</div></div><span class="stat-note" id="running-note">读取作业记录</span></div>
+      </section>
+
+      <div class="research-grid" id="research-progress">
+        <section class="panel progress-panel" aria-labelledby="map-title">
+          <div class="panel-heading"><div><p class="eyebrow">YOUR RESEARCH JOURNEY</p><h2 id="map-title">研究进行到哪一步了？</h2></div><button class="text-button" id="about" type="button"><svg><use href="#i-info"/></svg>如何计算</button></div>
+          <div class="progress-overview"><div class="progress-summary"><strong id="progress-count">正在读取进展</strong><span id="progress-attention" class="progress-attention"></span></div><progress id="overall-progress" max="12" value="0" aria-label="已完成研究环节"></progress><p id="progress-caption">选择一个环节，查看进展和下一步。</p></div>
+          <div class="progress-nodes" id="progress-nodes" role="group" aria-label="研究各阶段，点击查看当前进度"></div>
+          <div class="progress-detail" id="progress-detail" aria-live="polite"><div class="stage-heading"><h3 id="stage-title">研究进度</h3><span id="stage-state" class="phase-badge"></span></div><p id="stage-description">选择项目后，就能看到具体进展。</p><div class="checks-caption">完成这一环节需要</div><ul id="stage-checks" class="stage-checks"></ul><details class="stage-notes-wrap" id="stage-notes-wrap" hidden><summary>查看相关说明</summary><div id="stage-notes" class="stage-notes" hidden></div></details><div id="stage-items" class="stage-items" hidden></div><div class="stage-next"><span>接下来</span><p id="stage-next">等待研究项目。</p></div></div>
+        </section>
+
+        <aside class="side-column">
+          <section class="panel focus-panel" aria-labelledby="focus-title"><div class="focus-top"><p class="eyebrow">下一步，心中有数</p><span class="focus-spark"><svg aria-hidden="true"><use href="#i-spark"/></svg></span></div><h2 id="focus-title">先从一个研究问题开始</h2><p class="focus-description" id="focus-description">选择项目后，这里会提示当前最值得关注的环节。</p><div class="focus-action"><span class="mini-label">建议接下来做</span><p id="focus-next">在研究对话中给出方向或论文，开始第一个项目。</p></div><button class="primary-button" id="jump-current" type="button" disabled>查看这个环节</button><button class="copy-button" id="copy-current" type="button"><svg><use href="#i-copy"/></svg><span id="copy-label">复制开始研究指令</span></button><p class="copy-hint">复制到研究对话，让助手接着处理。</p><div id="review-summary" class="review-summary"></div><div class="focus-bottom"><span>记录更新于</span><time id="last-event">—</time></div></section>
+          <section class="quick-guide"><span class="quick-guide-icon"><svg><use href="#i-book"/></svg></span><div><h3>第一次打开？很容易。</h3><p>选项目、看进度、找下一步。<br>用一分钟熟悉工作台。</p><button class="guide-trigger text-button" type="button">打开使用指南</button></div></section>
+        </aside>
+      </div>
+
+      <div class="detail-grid">
+        <section class="panel experiments-panel" id="experiments" aria-labelledby="experiments-title"><div class="panel-heading"><div><p class="eyebrow">LEARN FROM EVERY ATTEMPT</p><h2 id="experiments-title">实验，一眼看懂</h2></div><span class="small-badge" id="attempt-count">读取中</span></div><div class="run-chart-wrap"><svg id="run-chart" viewBox="0 0 600 45" preserveAspectRatio="none" role="img" aria-label="各类实验状态分布"></svg></div><div class="run-legend" id="run-legend"></div><p class="empty-inline" id="runs-empty" hidden>还没有实验记录，准备完成后会出现在这里。</p><details class="run-details" id="run-details"><summary>查看每次实验的记录<span>点击色块了解具体状态</span></summary><div class="run-grid" id="run-grid" role="group" aria-label="按提交顺序排列的实验，点击查看记录"></div><div class="run-detail" id="run-detail" aria-live="polite"><span class="mini-label">实验记录</span><span>选择色块，查看这次尝试。</span></div></details></section>
+
+        <section class="panel outputs-panel" id="outputs" aria-labelledby="outputs-title"><div class="panel-heading"><div><p class="eyebrow">IDEAS TAKING SHAPE</p><h2 id="outputs-title">已经形成的成果</h2></div><span class="heading-symbol"><svg aria-hidden="true"><use href="#i-layers"/></svg></span></div><div class="output-list" id="output-list"></div><p class="empty-inline" id="outputs-empty" hidden>论文和图表准备好后，就可以从这里打开。</p><p class="output-note">打开查看最新登记的文件。</p></section>
+      </div>
+
+      <section class="panel resources-panel" id="resources" aria-labelledby="resources-title">
+        <div class="panel-heading"><div><p class="eyebrow">RESOURCES BEHIND THE RESEARCH</p><h2 id="resources-title">工具与研究资料</h2></div><span class="heading-symbol"><svg aria-hidden="true"><use href="#i-book"/></svg></span></div>
+        <div class="resource-tabs" role="tablist" aria-label="工具与资料分类"><button type="button" id="references-tab" role="tab" aria-selected="true" aria-controls="references-panel" data-resource-tab="references">参考论文与代码 <span id="reference-count"></span></button><button type="button" id="tools-tab" role="tab" aria-selected="false" aria-controls="tools-panel" data-resource-tab="tools">当前工具 <span id="tool-count"></span></button></div>
+        <div id="references-panel" role="tabpanel" aria-labelledby="references-tab"><p class="resource-note" id="references-note">正在读取当前项目的参考资料。</p><div class="references-list" id="references-list"></div></div>
+        <div id="tools-panel" role="tabpanel" aria-labelledby="tools-tab" hidden><p class="resource-note" id="tools-note">读取本机工具清单。</p><div class="tool-filters" role="group" aria-label="筛选工具类型"><button type="button" data-tool-filter="all" aria-pressed="true">全部</button><button type="button" data-tool-filter="skill" aria-pressed="false">Skill</button><button type="button" data-tool-filter="mcp" aria-pressed="false">MCP</button><button type="button" data-tool-filter="plugin" aria-pressed="false">插件</button><button type="button" data-tool-filter="runtime" aria-pressed="false">执行与模型</button></div><div class="tool-grid" id="tool-grid"></div></div>
+      </section>
+
+      <section class="activity-section" aria-labelledby="activity-title"><div class="activity-heading"><h2 id="activity-title">最近的研究动态</h2><span>每一步，都留有记录</span></div><div class="activity-list" id="activity-list"></div></section>
+    </main>
+    <footer><span class="footer-brand">ai2research<span>.</span></span><p>让好的问题，走向有依据的成果。</p><span class="sync-time" id="sync-time">正在读取研究记录</span></footer>
+  </div>
+
+  <dialog id="guide-dialog" class="guide-dialog" aria-labelledby="guide-title"><div class="dialog-top"><span class="eyebrow">WELCOME TO YOUR WORKSPACE</span><button class="icon-button dialog-close" data-dialog="guide-dialog" type="button" aria-label="关闭使用指南"><svg><use href="#i-close"/></svg></button></div><h2 id="guide-title">看懂进展，只需三步。</h2><p class="dialog-lead">这里帮你了解研究做到哪里，也帮你找到下一步。</p><div class="guide-steps"><div><span class="guide-step-icon"><svg><use href="#i-layers"/></svg></span><div><h3>先选一个研究项目</h3><p>在顶部项目菜单切换，暂停项目的记录也会保留。</p></div></div><div><span class="guide-step-icon"><svg><use href="#i-eye"/></svg></span><div><h3>查看正在推进的环节</h3><p>点击进度节点，查看完成标准、实际数量和还缺什么。</p></div></div><div><span class="guide-step-icon"><svg><use href="#i-copy"/></svg></span><div><h3>把下一步交给研究助手</h3><p>复制继续研究指令，粘贴到研究对话；成果可以直接在页面打开。</p></div></div></div><div class="guide-bottom"><button class="primary-button" id="guide-start" type="button">带我查看当前进展</button><button class="copy-button" id="copy-guide" type="button"><svg><use href="#i-copy"/></svg>复制研究指令</button></div><p class="dialog-footnote">还没有项目？复制指令模板，在研究对话中填入你的领域和要求即可。</p></dialog>
+  <dialog id="copy-dialog" aria-labelledby="copy-title"><div class="dialog-top"><span class="eyebrow">CONTINUE YOUR RESEARCH</span><button class="icon-button dialog-close" data-dialog="copy-dialog" type="button" aria-label="关闭研究指令"><svg><use href="#i-close"/></svg></button></div><h2 id="copy-title">把指令带到研究对话</h2><p>未能直接复制，请选择下方文字，用键盘或长按复制。</p><textarea id="command-text" readonly aria-label="可复制的研究指令" rows="7"></textarea></dialog>
+  <dialog id="about-dialog" aria-labelledby="about-title"><div class="dialog-top"><span class="eyebrow">UNDERSTANDING PROGRESS</span><button class="icon-button" id="close-about" type="button" aria-label="关闭说明"><svg><use href="#i-close"/></svg></button></div><h2 id="about-title">进度来自真实的研究记录。</h2><p>12个环节按各自的完成条件计数。初稿、图表和审查可以分别推进；总进度不代表剩余时间或论文质量。</p><p>“待核对”表示记录或材料需要确认；“待修订”表示本轮审查仍有问题。点击节点，就能看到具体缺项与下一步。</p><p>页面可见时每30秒同步，也可以立即刷新。它读取已保存的研究记录，复制指令后仍需在研究对话中执行。</p><p class="dialog-footnote">工作台只读项目记录，不在这里启动实验或改变暂停状态。</p></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <noscript><p class="noscript">请启用 JavaScript 以查看研究进展。</p></noscript>
+</body>
+</html>

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+python="$root/.venv/bin/python"
+if [[ ! -x "$python" ]]; then
+    printf 'Run bash %s/tools/bootstrap_linux.sh first.\n' "$root" >&2
+    exit 1
+fi
+export AI2RESEARCH_TRANSPORT="${AI2RESEARCH_TRANSPORT:-local}"
+exec "$python" "$root/tools/harness_cli.py" "$@"

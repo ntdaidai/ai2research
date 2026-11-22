@@ -1,0 +1,6 @@
+interface:
+  display_name: "Research Workflow"
+  short_description: "One evidence-based workflow for research, experiments and writing"
+  default_prompt: "使用 $research-workflow，接续我的科研材料，完成当前阶段并保存可核验结果。"
+policy:
+  allow_implicit_invocation: true

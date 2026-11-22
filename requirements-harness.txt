@@ -1,0 +1,6 @@
+fastmcp==2.14.4
+fakeredis==2.33.0
+litellm==1.109.1
+optuna==5.0.0
+mlflow-skinny==3.18.0
+matplotlib==3.11.2

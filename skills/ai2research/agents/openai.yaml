@@ -1,0 +1,6 @@
+interface:
+  display_name: "ai2research"
+  short_description: "Operate durable research tasks through the ai2research harness"
+  default_prompt: "使用 $ai2research，读取当前研究状态与交接，接续已授权的任务。"
+policy:
+  allow_implicit_invocation: true
