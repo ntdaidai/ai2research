@@ -12,6 +12,7 @@ def main():
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--name", default="ai2research-showcase")
     parser.add_argument("--python", type=Path)
+    parser.add_argument("--static-directory", type=Path, help="Serve exported frontend files without the research backend")
     args = parser.parse_args()
     if not re.fullmatch(r"[A-Za-z0-9_.-]+", args.name) or not re.fullmatch(r"[A-Za-z0-9.:-]+", args.host):
         parser.error("Use a plain service name and host address")
@@ -24,6 +25,12 @@ def main():
         parser.error("Create the project's Python environment first")
     if any(c in str(root) + str(python) for c in ('\n', '\r', '"', '%')):
         parser.error("Unsupported characters in service path")
+    command = f'"{python}" "{root / "tools/harness_cli.py"}" showcase --host {args.host} --port {args.port}'
+    if args.static_directory:
+        directory = args.static_directory.resolve()
+        if not (directory / "index.html").is_file() or any(c in str(directory) for c in ('\n', '\r', '"', '%')):
+            parser.error("Select an exported static frontend directory")
+        command = f'"{python}" -m http.server {args.port} --bind {args.host} --directory "{directory}"'
     subprocess.run(["systemctl", "--user", "show", "-p", "Version"], check=True, stdout=subprocess.DEVNULL)
     folder = Path.home() / ".config/systemd/user"
     folder.mkdir(parents=True, exist_ok=True)
@@ -39,7 +46,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory={root}
-ExecStart="{python}" "{root / 'tools/harness_cli.py'}" showcase --host {args.host} --port {args.port}
+ExecStart={command}
 Environment=AI2RESEARCH_TRANSPORT=local
 Environment=PYTHONDONTWRITEBYTECODE=1
 Restart=on-failure

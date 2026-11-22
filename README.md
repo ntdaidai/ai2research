@@ -77,7 +77,14 @@ python3 tools/build_public_demo.py
 python3 -m http.server 8080 --directory docs
 ```
 
-The included Pages workflow publishes `docs/` after pushes to `main`, once the repository's **Settings → Pages → Source** is set to **GitHub Actions**. The demo and live workbench use the same UI source.
+The demo can be deployed on any static HTTP server. To serve an exported snapshot of your own research without a running research backend:
+
+```bash
+.venv/bin/python tools/export_showcase_static.py --output .local/showcase-static
+.venv/bin/python tools/deploy_showcase.py --host YOUR_SERVER_IP --port 8765 --static-directory .local/showcase-static
+```
+
+This service only serves files. The snapshot includes selected project metadata and verified presentation outputs; use a trusted LAN or add your own access gateway. Re-export when research records change. No model or experiment process runs as part of serving the page.
 
 ## Validation
 
