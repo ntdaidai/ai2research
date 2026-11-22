@@ -18,6 +18,9 @@ class ShowcaseCatalogTest(unittest.TestCase):
             plugin = codex / "plugins/cache/openai-curated-remote/sites/1/skills/sites/SKILL.md"
             plugin.parent.mkdir(parents=True)
             plugin.write_text("Site skill")
+            metadata = plugin.parents[2] / ".codex-plugin/plugin.json"
+            metadata.parent.mkdir()
+            metadata.write_text(json.dumps({"interface":{"supportURL":"https://example.org/sites-help"}}))
             (codex / "config.toml").write_text('[mcp_servers.ai2research]\ncommand="python"\n[mcp_servers.ai2research.env]\nAPI_KEY="secret-marker"\n')
             settings = {"review":{"model":"review-model","api_key":"private-marker"}}
             with patch("tools.harness.showcase_catalog.shutil.which", return_value=None):
@@ -27,6 +30,11 @@ class ShowcaseCatalogTest(unittest.TestCase):
             self.assertEqual(items["ai2research-mcp"]["status"], "已登记")
             self.assertEqual(items["sites"]["status"], "技能包已检测")
             self.assertEqual(items["external-review"]["status"], "已配置")
+            self.assertEqual(items["ai2research"]["links"][0]["url"], "https://github.com/ntdaidai/ai2research/tree/main/skills/ai2research")
+            self.assertEqual(items["drawio-skill"]["links"][0]["url"], "https://github.com/Agents365-ai/drawio-skill")
+            self.assertEqual(items["sites"]["links"], [{"label":"官方说明","url":"https://example.org/sites-help"}])
+            self.assertEqual(items["nature-polishing"]["links"], [])
+            self.assertIn("暂无公开链接",items["nature-polishing"]["source_note"])
             self.assertNotIn("已连接", {item["status"] for item in result["items"]})
             serialized = json.dumps(result,ensure_ascii=False)
             for private in ("secret-marker","private-marker",str(root)):

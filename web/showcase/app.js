@@ -345,6 +345,16 @@ function renderResources(data) {
     heading.append(element("h3", "", tool.title), element("span", `tool-status${tool.status.includes("未") ? " undetected" : ""}`, tool.status));
     card.append(element("div", "tool-kind", `${kinds[tool.kind] || "工具"} · ${tool.id}`), heading,
       element("p", "tool-description", tool.description), element("p", "tool-evidence", tool.evidence));
+    const sources = element("div", "tool-sources");
+    for (const source of tool.links || []) {
+      const link = resourceLink(source.label, source.url, source.label === "GitHub" ? "code" : "book");
+      if (link) {
+        link.setAttribute("aria-label", `${tool.title} · ${source.label}，新窗口`);
+        sources.append(link);
+      }
+    }
+    if (!sources.childElementCount) sources.append(element("span", "tool-source-note", tool.source_note || "未提供公开来源链接"));
+    card.append(sources);
     return card;
   }));
   document.querySelectorAll("[data-tool-filter]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.toolFilter === toolFilter)));

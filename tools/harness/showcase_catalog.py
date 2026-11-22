@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.metadata
+import json
 import os
 from pathlib import Path
 import shutil
@@ -9,6 +10,18 @@ import tomllib
 from urllib.parse import urlsplit
 
 from .state import ROOT, config
+
+
+REPOSITORIES = {
+    "ai2research": "https://github.com/ntdaidai/ai2research/tree/main/skills/ai2research",
+    "research-workflow": "https://github.com/ntdaidai/ai2research/tree/main/skills/research-workflow",
+    "drawio-skill": "https://github.com/Agents365-ai/drawio-skill",
+    "ai2research-mcp": "https://github.com/ntdaidai/ai2research/blob/main/tools/harness_mcp.py",
+    "arxiv-mcp": "https://github.com/blazickjp/arxiv-mcp-server",
+    "tectonic": "https://github.com/tectonic-typesetting/tectonic",
+    "drawio": "https://github.com/jgraph/drawio-desktop",
+    "matplotlib": "https://github.com/matplotlib/matplotlib",
+}
 
 
 def public_url(value):
@@ -68,9 +81,12 @@ def tool_inventory(*, root=ROOT, home=None, codex_home=None, settings=None):
     settings = config() if settings is None else settings
     items = []
 
-    def add(identifier, kind, title, description, status, evidence):
+    def add(identifier, kind, title, description, status, evidence, *, links=()):
+        repository = REPOSITORIES.get(identifier)
+        sources = [{"label": "GitHub", "url": repository}] if repository else list(links)
         items.append({"id": identifier, "kind": kind, "title": title, "description": description,
-                      "status": status, "evidence": evidence})
+                      "status": status, "evidence": evidence, "links": sources,
+                      "source_note": "" if sources else "本地技能 · 暂无公开链接" if kind == "skill" else "未提供公开源码链接"})
 
     skills = [
         ("ai2research", "研究项目操作", "研究任务、实验、审查与交付的项目入口。"),
@@ -108,9 +124,22 @@ def tool_inventory(*, root=ROOT, home=None, codex_home=None, settings=None):
         ("visualize", "Visualize", "visualize", "交互式图表和原理演示的设计规范。"),
         ("pages", "Pages", "write-page", "整理和维护研究内容页面。"),
     ]:
-        found = any((plugin_root / name).glob(f"*/skills/{skill}/SKILL.md"))
+        packages = sorted((plugin_root / name).glob(f"*/skills/{skill}/SKILL.md"))
+        found = bool(packages)
+        links = []
+        for package in reversed(packages):
+            try:
+                metadata = json.loads((package.parents[2] / ".codex-plugin/plugin.json").read_text())
+                interface = metadata.get("interface", {})
+                documentation = public_url(interface.get("supportURL"))
+                homepage = public_url(interface.get("websiteURL")) or public_url(metadata.get("homepage"))
+                if documentation or homepage:
+                    links = [{"label": "官方说明" if documentation else "官网", "url": documentation or homepage}]
+                    break
+            except (OSError, ValueError, AttributeError):
+                continue
         add(name, "plugin", title, description, "技能包已检测" if found else "未检测到",
-            "检测本机插件技能包；账号连接由使用端管理" if found else "本机未检测到相应插件技能包")
+            "检测本机插件技能包；账号连接由使用端管理" if found else "本机未检测到相应插件技能包", links=links)
 
     for executable, title, description in [
         ("tectonic", "LaTeX / Tectonic", "把论文源码编译成 PDF。"),
