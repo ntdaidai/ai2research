@@ -4,6 +4,8 @@ A research workbench with persistent tasks, bounded experiments, evidence tracki
 
 面向研究助手的工作台：从选题、论文与代码核查，到实验、复核、图表、稿件和交付，记录每一步的真实依据。
 
+当前功能、依赖和产品范围见 **[能力清单（中文）](CAPABILITIES.md)**。主要包括研究入口、论文与代码检索、持久任务、CPU/GPU 实验、复核消融、双评审、论文图表、正式交付，以及四页展示台。
+
 ## What is included
 
 - CLI and stdio MCP tools backed by the same SQLite state.
@@ -26,7 +28,7 @@ bash tools/bootstrap_linux.sh
 ./ai2research showcase
 ```
 
-Open `http://127.0.0.1:8765/`. An empty installation shows a start guide; it contains no private research records.
+Open `http://127.0.0.1:8765/`. An empty installation shows an empty workspace with a start template; it contains no private research records.
 
 Before local or SSH experiments, edit `[remote]` in `harness.toml`: set your account, absolute home and `<home>/.research-harness` workspace. Set GPU indices to the devices you may use. New external-review calls are disabled by default; configure your provider, model, key environment name and a bounded call allowance explicitly. Never put the key in the repository.
 
@@ -68,6 +70,8 @@ journalctl --user -u ai2research-showcase
 
 The dashboard reads local state. It does not start jobs or call paid models. Anyone able to reach the bound port can view that state. Use SSH forwarding for private access. The user service survives SSH disconnects when the machine enables user lingering; it does not require a system service or root installation.
 
+The dashboard has four separate views: overview, research progress, results, and tools/references. Navigation supports direct links and browser back. Progress counts verified final handover as preparation evidence while preserving legacy task handoff gaps in the stage notes. A changed delivery or a newer review reopens verification.
+
 ## Public static demo
 
 `docs/` contains a generated interface demo, clearly labeled as synthetic. It does not connect to a research server or expose private state. Generate it with:
@@ -97,5 +101,3 @@ These are infrastructure and workflow checks using isolated fixtures. They do no
 ## License
 
 [MIT](LICENSE). Dependency and reference notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-The dashboard has four separate views: overview, research progress, results, and tools/references. Navigation supports direct links and browser back. Progress counts verified final handover as preparation evidence while preserving legacy task handoff gaps in the stage notes. A changed delivery or a newer review reopens verification.
