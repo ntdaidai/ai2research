@@ -1,383 +1,150 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-22T13:18:19.013750+00:00",
-  "mode": "synthetic_demo",
-  "projects": [
-    {
-      "id": "demo-study",
-      "title": "示例研究 · 合成数据",
-      "execution_state": "active",
-      "evidence_kind": "toolchain_test"
-    }
-  ],
-  "project": {
-    "id": "demo-study",
-    "title": "示例研究 · 合成数据",
-    "execution_state": "active",
-    "evidence_kind": "toolchain_test",
-    "job_counts": {
-      "completed": 8,
-      "failed": 1,
-      "timeout": 1
-    },
-    "jobs_total": 10,
-    "running_jobs": 0,
-    "jobs": [
+  "generated_at": "2026-11-23T15:48:25.372153+00:00",
+  "mode": "public_catalog",
+  "projects": [],
+  "project": null,
+  "tools": {
+    "items": [
       {
-        "id": "demo-job-01",
-        "state": "completed",
-        "collected": true
+        "id": "ai2research",
+        "kind": "skill",
+        "title": "研究项目操作",
+        "description": "研究任务、实验、审查与交付的项目入口。",
+        "links": [
+          {
+            "label": "GitHub",
+            "url": "https://github.com/ntdaidai/ai2research/tree/main/skills/ai2research"
+          }
+        ]
       },
       {
-        "id": "demo-job-02",
-        "state": "completed",
-        "collected": true
+        "id": "research-workflow",
+        "kind": "skill",
+        "title": "研究工作流",
+        "description": "文献、选题、实验、写作与复核的方法指导。",
+        "links": [
+          {
+            "label": "GitHub",
+            "url": "https://github.com/ntdaidai/ai2research/tree/main/skills/research-workflow"
+          }
+        ]
       },
       {
-        "id": "demo-job-03",
-        "state": "completed",
-        "collected": true
+        "id": "nature-polishing",
+        "kind": "skill",
+        "title": "论文润色",
+        "description": "学术表达、翻译、精简及稿件排版。",
+        "links": []
       },
       {
-        "id": "demo-job-04",
-        "state": "completed",
-        "collected": true
+        "id": "anti-defensive-writing",
+        "kind": "skill",
+        "title": "清晰写作",
+        "description": "减少重复解释与不必要的防御性表达。",
+        "links": []
       },
       {
-        "id": "demo-job-05",
-        "state": "completed",
-        "collected": true
+        "id": "drawio-skill",
+        "kind": "skill",
+        "title": "可编辑绘图",
+        "description": "制作可编辑的研究方法与系统结构图。",
+        "links": [
+          {
+            "label": "GitHub",
+            "url": "https://github.com/Agents365-ai/drawio-skill"
+          }
+        ]
       },
       {
-        "id": "demo-job-06",
-        "state": "completed",
-        "collected": true
+        "id": "ai2research-mcp",
+        "kind": "mcp",
+        "title": "ai2research MCP",
+        "description": "任务状态、论文检索、实验与成果工具入口。",
+        "links": [
+          {
+            "label": "GitHub",
+            "url": "https://github.com/ntdaidai/ai2research/blob/main/tools/harness_mcp.py"
+          }
+        ]
       },
       {
-        "id": "demo-job-07",
-        "state": "completed",
-        "collected": true
+        "id": "arxiv-mcp",
+        "kind": "mcp",
+        "title": "arXiv 检索适配",
+        "description": "通过独立运行时检索论文与读取原文。",
+        "links": [
+          {
+            "label": "GitHub",
+            "url": "https://github.com/blazickjp/arxiv-mcp-server"
+          }
+        ]
       },
       {
-        "id": "demo-job-08",
-        "state": "completed",
-        "collected": true
+        "id": "sites",
+        "kind": "plugin",
+        "title": "Sites",
+        "description": "网页设计、实现与本地展示流程。",
+        "links": []
       },
       {
-        "id": "demo-job-09",
-        "state": "failed",
-        "collected": true
+        "id": "visualize",
+        "kind": "plugin",
+        "title": "Visualize",
+        "description": "交互式图表和原理演示的设计规范。",
+        "links": []
       },
       {
-        "id": "demo-job-10",
-        "state": "timeout",
-        "collected": true
+        "id": "pages",
+        "kind": "plugin",
+        "title": "Pages",
+        "description": "整理和维护研究内容页面。",
+        "links": []
+      },
+      {
+        "id": "tectonic",
+        "kind": "runtime",
+        "title": "LaTeX / Tectonic",
+        "description": "把论文源码编译成 PDF。",
+        "links": [
+          {
+            "label": "GitHub",
+            "url": "https://github.com/tectonic-typesetting/tectonic"
+          }
+        ]
+      },
+      {
+        "id": "drawio",
+        "kind": "runtime",
+        "title": "draw.io",
+        "description": "导出可编辑结构图与矢量图。",
+        "links": [
+          {
+            "label": "GitHub",
+            "url": "https://github.com/jgraph/drawio-desktop"
+          }
+        ]
+      },
+      {
+        "id": "matplotlib",
+        "kind": "runtime",
+        "title": "Matplotlib",
+        "description": "从实验结果生成论文图表。",
+        "links": [
+          {
+            "label": "GitHub",
+            "url": "https://github.com/matplotlib/matplotlib"
+          }
+        ]
+      },
+      {
+        "id": "external-review",
+        "kind": "model",
+        "title": "外部评审模型",
+        "description": "用于实验与稿件的外部审查。",
+        "links": []
       }
     ],
-    "artifact_count": 24,
-    "artifact_kinds": {},
-    "outputs": [],
-    "reviews": [],
-    "activity": [],
-    "task_counts": {
-      "completed": 6,
-      "pending": 6
-    },
-    "last_event_at": null,
-    "progress": {
-      "stages": [
-        {
-          "id": "intake",
-          "title": "选题入口",
-          "icon": "spark",
-          "state": "completed",
-          "state_label": "已完成",
-          "completed_checks": 1,
-          "total_checks": 1,
-          "checks": [
-            {
-              "label": "合成示例：本阶段材料与记录",
-              "done": true,
-              "detail": ""
-            }
-          ],
-          "summary": "界面演示数据，不代表实际阅读、实验、审查或发表。",
-          "next_action": "运行真实工作台后，在已有授权范围内推进并更新记录。",
-          "evidence": [],
-          "notes": [
-            "所有状态与数量均为合成界面示例。"
-          ],
-          "items": []
-        },
-        {
-          "id": "papers",
-          "title": "文章筛选",
-          "icon": "book",
-          "state": "completed",
-          "state_label": "已完成",
-          "completed_checks": 1,
-          "total_checks": 1,
-          "checks": [
-            {
-              "label": "合成示例：本阶段材料与记录",
-              "done": true,
-              "detail": ""
-            }
-          ],
-          "summary": "界面演示数据，不代表实际阅读、实验、审查或发表。",
-          "next_action": "运行真实工作台后，在已有授权范围内推进并更新记录。",
-          "evidence": [],
-          "notes": [
-            "所有状态与数量均为合成界面示例。"
-          ],
-          "items": []
-        },
-        {
-          "id": "code",
-          "title": "代码核查",
-          "icon": "code",
-          "state": "completed",
-          "state_label": "已完成",
-          "completed_checks": 1,
-          "total_checks": 1,
-          "checks": [
-            {
-              "label": "合成示例：本阶段材料与记录",
-              "done": true,
-              "detail": ""
-            }
-          ],
-          "summary": "界面演示数据，不代表实际阅读、实验、审查或发表。",
-          "next_action": "运行真实工作台后，在已有授权范围内推进并更新记录。",
-          "evidence": [],
-          "notes": [
-            "所有状态与数量均为合成界面示例。"
-          ],
-          "items": []
-        },
-        {
-          "id": "selection",
-          "title": "可行课题",
-          "icon": "node",
-          "state": "completed",
-          "state_label": "已完成",
-          "completed_checks": 1,
-          "total_checks": 1,
-          "checks": [
-            {
-              "label": "合成示例：本阶段材料与记录",
-              "done": true,
-              "detail": ""
-            }
-          ],
-          "summary": "界面演示数据，不代表实际阅读、实验、审查或发表。",
-          "next_action": "运行真实工作台后，在已有授权范围内推进并更新记录。",
-          "evidence": [],
-          "notes": [
-            "所有状态与数量均为合成界面示例。"
-          ],
-          "items": []
-        },
-        {
-          "id": "preparation",
-          "title": "实验准备",
-          "icon": "code",
-          "state": "completed",
-          "state_label": "已完成",
-          "completed_checks": 1,
-          "total_checks": 1,
-          "checks": [
-            {
-              "label": "合成示例：本阶段材料与记录",
-              "done": true,
-              "detail": ""
-            }
-          ],
-          "summary": "界面演示数据，不代表实际阅读、实验、审查或发表。",
-          "next_action": "运行真实工作台后，在已有授权范围内推进并更新记录。",
-          "evidence": [],
-          "notes": [
-            "所有状态与数量均为合成界面示例。"
-          ],
-          "items": []
-        },
-        {
-          "id": "experiments",
-          "title": "实验运行",
-          "icon": "flask",
-          "state": "completed",
-          "state_label": "已完成",
-          "completed_checks": 1,
-          "total_checks": 1,
-          "checks": [
-            {
-              "label": "合成示例：本阶段材料与记录",
-              "done": true,
-              "detail": ""
-            }
-          ],
-          "summary": "界面演示数据，不代表实际阅读、实验、审查或发表。",
-          "next_action": "运行真实工作台后，在已有授权范围内推进并更新记录。",
-          "evidence": [],
-          "notes": [
-            "所有状态与数量均为合成界面示例。"
-          ],
-          "items": []
-        },
-        {
-          "id": "verification",
-          "title": "复核消融",
-          "icon": "check",
-          "state": "in_progress",
-          "state_label": "进行中",
-          "completed_checks": 0,
-          "total_checks": 1,
-          "checks": [
-            {
-              "label": "合成示例：本阶段材料与记录",
-              "done": false,
-              "detail": ""
-            }
-          ],
-          "summary": "界面演示数据，不代表实际阅读、实验、审查或发表。",
-          "next_action": "运行真实工作台后，在已有授权范围内推进并更新记录。",
-          "evidence": [],
-          "notes": [
-            "所有状态与数量均为合成界面示例。"
-          ],
-          "items": []
-        },
-        {
-          "id": "experiment_review",
-          "title": "实验审查",
-          "icon": "check",
-          "state": "pending",
-          "state_label": "未开始",
-          "completed_checks": 0,
-          "total_checks": 1,
-          "checks": [
-            {
-              "label": "合成示例：本阶段材料与记录",
-              "done": false,
-              "detail": ""
-            }
-          ],
-          "summary": "界面演示数据，不代表实际阅读、实验、审查或发表。",
-          "next_action": "运行真实工作台后，在已有授权范围内推进并更新记录。",
-          "evidence": [],
-          "notes": [
-            "所有状态与数量均为合成界面示例。"
-          ],
-          "items": []
-        },
-        {
-          "id": "manuscript",
-          "title": "论文初稿",
-          "icon": "file",
-          "state": "pending",
-          "state_label": "未开始",
-          "completed_checks": 0,
-          "total_checks": 1,
-          "checks": [
-            {
-              "label": "合成示例：本阶段材料与记录",
-              "done": false,
-              "detail": ""
-            }
-          ],
-          "summary": "界面演示数据，不代表实际阅读、实验、审查或发表。",
-          "next_action": "运行真实工作台后，在已有授权范围内推进并更新记录。",
-          "evidence": [],
-          "notes": [
-            "所有状态与数量均为合成界面示例。"
-          ],
-          "items": []
-        },
-        {
-          "id": "figures",
-          "title": "图表制作",
-          "icon": "layers",
-          "state": "pending",
-          "state_label": "未开始",
-          "completed_checks": 0,
-          "total_checks": 1,
-          "checks": [
-            {
-              "label": "合成示例：本阶段材料与记录",
-              "done": false,
-              "detail": ""
-            }
-          ],
-          "summary": "界面演示数据，不代表实际阅读、实验、审查或发表。",
-          "next_action": "运行真实工作台后，在已有授权范围内推进并更新记录。",
-          "evidence": [],
-          "notes": [
-            "所有状态与数量均为合成界面示例。"
-          ],
-          "items": []
-        },
-        {
-          "id": "manuscript_review",
-          "title": "稿件审查",
-          "icon": "check",
-          "state": "pending",
-          "state_label": "未开始",
-          "completed_checks": 0,
-          "total_checks": 1,
-          "checks": [
-            {
-              "label": "合成示例：本阶段材料与记录",
-              "done": false,
-              "detail": ""
-            }
-          ],
-          "summary": "界面演示数据，不代表实际阅读、实验、审查或发表。",
-          "next_action": "运行真实工作台后，在已有授权范围内推进并更新记录。",
-          "evidence": [],
-          "notes": [
-            "所有状态与数量均为合成界面示例。"
-          ],
-          "items": []
-        },
-        {
-          "id": "delivery",
-          "title": "成果交付",
-          "icon": "layers",
-          "state": "pending",
-          "state_label": "未开始",
-          "completed_checks": 0,
-          "total_checks": 1,
-          "checks": [
-            {
-              "label": "合成示例：本阶段材料与记录",
-              "done": false,
-              "detail": ""
-            }
-          ],
-          "summary": "界面演示数据，不代表实际阅读、实验、审查或发表。",
-          "next_action": "运行真实工作台后，在已有授权范围内推进并更新记录。",
-          "evidence": [],
-          "notes": [
-            "所有状态与数量均为合成界面示例。"
-          ],
-          "items": []
-        }
-      ],
-      "completed_stages": 6,
-      "total_stages": 12,
-      "attention_stages": 0,
-      "focus_stage": "verification",
-      "paused": false,
-      "next_action": "此为合成界面演示，请在自己的工作台开始真实研究。"
-    },
-    "references": {
-      "state": "empty",
-      "items": [],
-      "note": "公开演示不包含私人选题、论文清单或实验代码；真实项目在这里显示已登记的PDF/GitHub链接。"
-    }
-  },
-  "tools": {
-    "items": [],
-    "note": "工具清单来自真实部署时的本机检测；此公开静态演示不探测访问者环境。"
+    "note": ""
   }
 }

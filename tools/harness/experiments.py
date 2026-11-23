@@ -7,7 +7,7 @@ import math
 import re
 import sys
 import uuid
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from .state import ROOT, config, connect, local_dir, now, record, require_active_project
 
 
@@ -40,7 +40,7 @@ def prepare_experiment(project_id: str, title: str, script_path: str, parameters
         raise ValueError("Invalid memory/time bounds")
     if gpu_memory_mb == 0 and evaluation_on_gpu:
         raise ValueError("CPU proposals cannot request GPU evaluation")
-    if remote_python != "python3" and not (remote_python.startswith(str(Path(config()["remote"]["allowed_home"])) + "/") and ".." not in Path(remote_python).parts):
+    if remote_python != "python3" and not (remote_python.startswith(str(PurePosixPath(config()["remote"]["allowed_home"])) + "/") and ".." not in PurePosixPath(remote_python).parts):
         raise ValueError("Interpreter must be python3 or an existing path within the configured user home")
     path = Path(script_path).resolve(strict=True)
     script = path.read_text(encoding="utf-8")

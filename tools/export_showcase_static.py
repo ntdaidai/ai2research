@@ -17,7 +17,7 @@ def export(output: Path):
     if output == ROOT or ROOT.is_relative_to(output) or output == WEB:
         raise ValueError("Select a dedicated static output directory")
     output.mkdir(parents=True, exist_ok=True)
-    assets = ("index.html", "style.css", "app.js", "favicon.svg")
+    assets = ("index.html", "style.css", "catalog.js", "app.js", "favicon.svg")
     for name in assets:
         if (output / name).is_symlink():
             raise ValueError("Static output files must not be symbolic links")
@@ -48,7 +48,7 @@ def export(output: Path):
         shutil.copyfile(WEB / name, output / name)
     html = (output / "index.html").read_text()
     html = html.replace('<html lang="zh-CN">', '<html lang="zh-CN" data-static="true">')
-    html = html.replace('href="/style.css"', 'href="./style.css"').replace('src="/app.js"', 'src="./app.js"').replace('href="/favicon.svg"', 'href="./favicon.svg"').replace('href="/"', 'href="./"')
+    html = html.replace('href="/style.css"', 'href="./style.css"').replace('src="/app.js"', 'src="./app.js"').replace('src="/catalog.js"', 'src="./catalog.js"').replace('href="/favicon.svg"', 'href="./favicon.svg"').replace('href="/"', 'href="./"')
     html = html.replace('真实研究记录 · 自动同步 · 随时回看', '真实研究快照 · 静态部署 · 随时回看')
     html = html.replace('页面可见时每30秒同步，也可以立即刷新。', '当前页面是研究快照，重新导出静态文件后刷新即可更新。')
     (output / "index.html").write_text(html)

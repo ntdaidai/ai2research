@@ -81,7 +81,10 @@ class WorkflowRecovery(unittest.TestCase):
     def test_external_review_error_does_not_leak_credentials_or_retry(self):
         fake = types.SimpleNamespace(suppress_debug_info=False)
         fake.completion = Mock(side_effect=RuntimeError("DO_NOT_LOG_TEST_CREDENTIAL"))
-        with patch.object(service, "_api_key", return_value="unit-test-key"), patch.dict(sys.modules, {"litellm": fake}):
+        settings = service.config()
+        settings["review"].update(max_calls=1, server_max_calls=1)
+        with patch.object(service, "config", return_value=settings), patch.object(state, "config", return_value=settings), \
+             patch.object(service, "_api_key", return_value="unit-test-key"), patch.dict(sys.modules, {"litellm": fake}):
             result = service.review_topic("fixture, no paid provider contacted")
         self.assertEqual(fake.completion.call_count, 1)
         self.assertEqual(fake.completion.call_args.kwargs["num_retries"], 0)

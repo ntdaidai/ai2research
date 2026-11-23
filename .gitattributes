@@ -1,2 +1,4 @@
 ai2research text eol=lf
 *.sh text eol=lf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf

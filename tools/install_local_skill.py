@@ -33,7 +33,7 @@ def _check_unlinked_resource(destination, skills):
         raise ValueError(f"Linked skill resource preserved: {destination.relative_to(skills)}")
 
 
-def sync_skills(root, codex_home, dry_run=False, restore=False):
+def sync_skills(root, codex_home, dry_run=False, restore=False, copy=False):
     root, codex_home = Path(root).resolve(), Path(codex_home).resolve()
     skills = codex_home / "skills"
     archive = codex_home / "skill-backups" / "research-workflow"
@@ -66,18 +66,30 @@ def sync_skills(root, codex_home, dry_run=False, restore=False):
                 raise ValueError(f"Local changes preserved; cannot remove link {name}")
             operations.append(("remove_managed_link", destination, None))
     else:
+        replacements = {}
         for name in LINKED:
             source, destination = root / "skills" / name, skills / name
             if not (source / "SKILL.md").is_file():
                 raise ValueError(f"Missing canonical skill: {name}")
             if destination.is_symlink() and destination.resolve() == source:
                 continue
+            if copy or os.name == "nt":
+                for resource in sorted(source.rglob("*")):
+                    if resource.is_symlink():
+                        raise ValueError(f"Linked source resource preserved: {resource.name}")
+                    if not resource.is_file():
+                        continue
+                    relative = f"{name}/{resource.relative_to(source).as_posix()}"
+                    target = skills / relative
+                    if target.exists() and relative not in manifest["files"] and target.read_bytes() != resource.read_bytes():
+                        raise ValueError(f"Existing unrelated skill preserved: {name}")
+                    replacements[relative] = resource.read_bytes()
+                continue
             if destination.exists() or destination.is_symlink():
                 raise ValueError(f"Existing unrelated skill preserved: {name}")
             operations.append(("link", destination, source))
             manifest["links"][name] = str(source)
 
-        replacements = {}
         for name in ALIASES:
             folder = skills / name
             if folder.is_symlink():
@@ -153,8 +165,9 @@ def main():
     parser.add_argument("--codex-home", type=Path, default=Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))))
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--restore", action="store_true", help="Restore originals without overwriting later local edits")
+    parser.add_argument("--copy", action="store_true", help="Copy canonical skills without symlink privileges (default on Windows)")
     args = parser.parse_args()
-    result = sync_skills(Path(__file__).resolve().parents[1], args.codex_home, args.dry_run, args.restore)
+    result = sync_skills(Path(__file__).resolve().parents[1], args.codex_home, args.dry_run, args.restore, args.copy)
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 

@@ -1,11 +1,20 @@
-# Publication validation
+# 迁移版验证 · 2026-11-23
 
-The independently prepared public checkout passed 199 isolated regression checks in 36.359 seconds (rechecked on 2026-11-22) on Python 3.14.4. No research experiments or paid reviews were started. The source scan found no private keys, local deployment addresses, personal home paths, private state databases or copied experiment artifacts in the publication file set.
+- Linux CPython 3.14.4：208项隔离回归通过，25.854秒。
+- 含中文和空格的新路径：从锁定文件安装全新主环境与arXiv环境，依赖一致性检查、页面、CLI及62工具的真实stdio MCP读写通过；arXiv模块0.8.2导入通过。
+- Windows x64：主环境Python 3.14.4的156项依赖、arXiv环境Python 3.12.2的46项依赖完成跨平台二进制包解析。
+- 官方PyPI uv 0.11.25 Windows x64包：实际下载、SHA256与ZIP CRC通过；安装器按PyPI元数据核验摘要后解压uv.exe，不修改全局PATH；Python安装显式使用`--no-bin --no-registry`。
+- Firefox136：空项目工作台8项流程通过，包含111目录、无idea起点、人工确认文档、复制兜底、77工具/34资源、六页1440/390/320布局与无项目写入。
+- MCP配置测试覆盖Windows路径、中文/空格、密钥环境变量名、保留其他设置、冲突不覆盖与重复执行；技能复制/恢复不要求软链接权限。
+- 源码归档使用明确白名单，无需Git，包含许可证、锁定依赖和摘要清单；原个人课题、状态、数据与凭据保持独立。
 
-The static frontend snapshot is deployed with a user-owned systemd service. It returned HTTP 200 after restart. The public `docs/` demo contains explicit synthetic records and does not read the live database. Deployment uses a static HTTP server on the research host; GitHub Pages is not required.
+本宿主是Linux，原生Windows双击安装、PowerShell执行和Windows进程行为尚未实机运行；Windows ARM64分支已提供但未做依赖解析与运行验收。接收者运行`4_check.cmd`后，`.local/install-check.json`记录其Windows实机结果。
 
-The server also passed backend-free deployment checks: exported snapshots for three projects, static PDF/PNG output requests, and HTTP 404 for the research API.
+本轮没有启动研究实验、调用付费模型、访问SSH服务器或修改当前用户Agent配置。
 
-The simplified four-view UI passed the 20 focused dashboard/progress/catalog checks and real-browser checks for routing, 1440/390/320 px layouts, current artifact SHA256, reference links, tool filters and paused/empty states. Legacy pending preparation tickets stay unchanged; valid formal delivery can complete progress, while a newer review removes that acceptance.
+## Linux 发行与推送前复核 · 2026-11-24
 
-The publication audit compared the implementation against the active workspace: no framework modules were missing. Deliberate differences retain portable user paths, opt-in skill installation, generic configuration and normalized text. The capability inventory documents the 62 registered MCP tools and the host-agent dependency.
+- Linux CPython 3.14.4 完整回归重新运行：208 项通过，27.005 秒。
+- Linux tar.gz 实际解压后，使用已有隔离依赖验证前端、CLI、62 个 stdio MCP 工具及隔离状态读写，全部通过；本次未重新安装全部依赖。
+- 归档 145 个文件逐项校验大小与 SHA256，启动脚本执行权限和 Bash 语法检查通过；个人状态和虚拟环境未入包。
+- Linux 上手说明包含 uv 准备、安装、页面启动、服务器 SSH 转发、Agent 接入和安装自检。

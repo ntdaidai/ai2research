@@ -12,8 +12,10 @@ let activeRequest = null;
 let lastRingKey = "";
 let lastChartKey = "";
 let toastTimer;
-let resourceTab = "references";
+let resourceTab = "tools";
 let toolFilter = "all";
+let resourcePhase = "research";
+let resourceToolLimit = 18;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 function element(tag, className, text) {
@@ -295,6 +297,7 @@ function resourceLink(label, value, glyph) {
 
 function selectResourceTab(name, focus=false) {
   resourceTab = name;
+  document.body.dataset.resourceTab = name;
   document.querySelectorAll("[data-resource-tab]").forEach(button => {
     const selected = button.dataset.resourceTab === name;
     button.setAttribute("aria-selected", String(selected));
@@ -303,6 +306,7 @@ function selectResourceTab(name, focus=false) {
   });
   $("references-panel").hidden = name !== "references";
   $("tools-panel").hidden = name !== "tools";
+  $("open-panel").hidden = name !== "open";
 }
 
 function renderResources(data) {
@@ -333,18 +337,20 @@ function renderResources(data) {
     row.append(content, actions);
     return row;
   }));
-  const inventory = data.tools?.items || [];
+  const inventory = assistCatalog().filter(tool=>tool.kind!=="resource");
   $("tool-count").textContent = String(inventory.length);
-  $("tools-note").textContent = data.tools?.note || "尚未读取到本机工具信息。";
-  const kinds = {skill:"Skill",mcp:"MCP",plugin:"插件",runtime:"执行与绘图",model:"外部模型"};
-  const visible = inventory.filter(tool => toolFilter === "all" || tool.kind === toolFilter || (toolFilter === "runtime" && tool.kind === "model"));
-  $("tool-grid").replaceChildren(...visible.map(tool => {
+  $("tools-note").textContent = "";
+  const kinds = assistKinds;
+  const query=$("resource-search").value.trim().toLocaleLowerCase();
+  const visible = inventory.filter(tool => (toolFilter === "all" || tool.kind === toolFilter || (toolFilter === "runtime" && tool.kind === "model")) && (resourcePhase==="all" || tool.stages.some(id=>assistSteps.find(s=>s.id===id)?.phase===resourcePhase)) && `${tool.title} ${tool.description}`.toLocaleLowerCase().includes(query));
+  $("tool-grid").replaceChildren(...visible.slice(0,resourceToolLimit).map(tool => {
     const card = element("article", "tool-card");
     card.dataset.toolKind = tool.kind;
+    card.dataset.phases = [...new Set(tool.stages.map(id=>assistSteps.find(s=>s.id===id)?.phase))].join(" ");
     const heading = element("div", "tool-heading");
-    heading.append(element("h3", "", tool.title), element("span", `tool-status${tool.status.includes("未") ? " undetected" : ""}`, tool.status));
-    card.append(element("div", "tool-kind", `${kinds[tool.kind] || "工具"} · ${tool.id}`), heading,
-      element("p", "tool-description", tool.description), element("p", "tool-evidence", tool.evidence));
+    heading.append(element("h3", "", tool.title));
+    card.append(element("div", "tool-kind", kinds[tool.kind] || "工具"), heading,
+      element("p", "tool-description", tool.description));
     const sources = element("div", "tool-sources");
     for (const source of tool.links || []) {
       const link = resourceLink(source.label, source.url, source.label === "GitHub" ? "code" : "book");
@@ -353,10 +359,15 @@ function renderResources(data) {
         sources.append(link);
       }
     }
-    if (!sources.childElementCount) sources.append(element("span", "tool-source-note", tool.source_note || "未提供公开来源链接"));
+    const choose = element("button", "text-button", assistDraft.selected.includes(tool.id) ? "已选择" : "选择");
+    choose.type="button"; choose.addEventListener("click",()=>{toggleAssistTool(tool.id,!assistDraft.selected.includes(tool.id));renderResources(current || {});});
+    sources.append(choose);
     card.append(sources);
     return card;
   }));
+  $("tools-show-more").hidden=visible.length<=resourceToolLimit;
+  $("tools-show-more").textContent=`查看更多工具（还有 ${Math.max(0,visible.length-resourceToolLimit)} 项）`;
+  renderOpenLibrary();
   document.querySelectorAll("[data-tool-filter]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.toolFilter === toolFilter)));
   selectResourceTab(resourceTab);
 }
@@ -375,7 +386,7 @@ function render(data) {
     artifact_count:0, outputs:[], reviews:[], activity:[], jobs:[], task_counts:{}};
   if (!data.project) {
     picker.append(element("option", "", "等待第一个研究项目"));
-    showNotice("还没有研究项目。在研究对话中给出方向或论文即可开始。");
+    showNotice("");
   } else {
     picker.value = project.id;
   }
@@ -397,6 +408,7 @@ function render(data) {
   renderReviews(project);
   renderActivity(project);
   renderResources(data);
+  updateAssistContext();
   $("sync-time").textContent = `本地记录 · ${date(data.generated_at)} · 每30秒同步`;
 }
 
@@ -454,9 +466,11 @@ function jumpToCurrent() {
 }
 function setNavigation() {
   const aliases = {"research-progress":"progress", outputs:"results", experiments:"results"};
-  let page = location.hash.slice(1) || "overview";
+  let page = location.hash.slice(1) || "workspace";
   page = aliases[page] || page;
-  if (!["overview", "progress", "results", "resources"].includes(page)) page = "overview";
+  if (!["workspace", "assist", "overview", "progress", "results", "resources"].includes(page)) page = "workspace";
+  document.body.dataset.view = page;
+  if(page === "resources") renderResources(current || {});
   document.querySelectorAll("[data-page]").forEach(view => { view.hidden = view.dataset.page !== page; });
   document.querySelectorAll(".nav a").forEach(link => {
     const active = link.hash === `#${page}`;
@@ -474,12 +488,14 @@ document.querySelectorAll("[data-resource-tab]").forEach(button => {
   button.addEventListener("keydown", event => {
     if (!["ArrowLeft","ArrowRight","Home","End"].includes(event.key)) return;
     event.preventDefault();
-    const next = event.key === "Home" ? "references" : event.key === "End" ? "tools" : resourceTab === "references" ? "tools" : "references";
+    const tabs=["references","tools","open"];
+    const next = event.key === "Home" ? tabs[0] : event.key === "End" ? tabs[2] : tabs[(tabs.indexOf(resourceTab)+(event.key==="ArrowRight"?1:2))%3];
     selectResourceTab(next, true);
   });
 });
 document.querySelectorAll("[data-tool-filter]").forEach(button => button.addEventListener("click", () => {
   toolFilter = button.dataset.toolFilter;
+  resourceToolLimit = 18;
   renderResources(current || {});
 }));
 function researchCommand() {
@@ -516,6 +532,272 @@ $("present").addEventListener("click", async () => {
   } catch { document.body.classList.toggle("screen-focus"); }
 });
 document.addEventListener("fullscreenchange", () => {document.body.classList.toggle("screen-focus", Boolean(document.fullscreenElement)); $("present").setAttribute("aria-label", document.fullscreenElement ? "退出全屏展示" : "全屏展示");});
+// The assisted branch composes a local task; execution stays in the user's Agent.
+const assistSteps = [
+  {id:"survey", title:"调研", phase:"research", output:"文献清单、原文证据与研究问题"},
+  {id:"screen", title:"筛选", phase:"research", output:"候选对照、基线代码与方法选择理由"},
+  {id:"experiment", title:"跑实验", phase:"implement", output:"实验方案、基线结果、代码版本与运行记录"},
+  {id:"iterate", title:"迭代", phase:"implement", output:"受控改进、对照与消融，保留负结果"},
+  {id:"figure", title:"出图", phase:"produce", output:"来自真实结果的图表、数据与生成脚本"},
+  {id:"draft", title:"出稿", phase:"produce", output:"与证据一致的论文稿、引用与源码"},
+  {id:"polish", title:"润色", phase:"produce", output:"保留事实和术语的修订稿与修改说明"}
+];
+const assistPhases = {research:"调研", implement:"实现", produce:"产出"};
+const assistKinds = {skill:"Skill", mcp:"MCP", experiment:"实验工具包", runtime:"执行与绘图", plugin:"应用与插件", model:"评审模型",resource:"论文 / 代码 / 数据"};
+const assistDomains = window.AI2RESEARCH_DOMAINS || {general:"通用科研"};
+const researchLibrary = window.AI2RESEARCH_LIBRARY || [];
+const assistMapping = {
+  "ai2research":["survey","screen","experiment","iterate","figure","draft","polish"],
+  "research-workflow":["survey","screen","experiment","iterate","figure","draft","polish"],
+  "nature-polishing":["polish"], "anti-defensive-writing":["draft","polish"],
+  "drawio-skill":["figure"], "ai2research-mcp":["survey","screen","experiment","iterate","figure","draft"],
+  "arxiv-mcp":["survey","screen"], sites:["figure"], visualize:["figure"], pages:["survey","draft"],
+  tectonic:["draft","polish"], drawio:["figure"], matplotlib:["figure"], "external-review":["screen","iterate","draft","polish"]
+};
+const assistCalls = {
+  "ai2research-mcp":"由已连接的 ai2research MCP 调用所需入口；先读取项目状态，按所选环节工作。",
+  "arxiv-mcp":"使用论文检索适配，检索、下载和读取原文，记录原文位置及代码来源。",
+  "research-workflow":"先读取 research-workflow 的 SKILL.md，再按当前环节加载对应参考。",
+  "ai2research":"先读取 ai2research 的 SKILL.md 与项目交接；复用已有项目、作业与证据。",
+  "nature-polishing":"读取 nature-polishing 的 SKILL.md；保留事实、证据边界、术语与引用。",
+  "anti-defensive-writing":"读取 anti-defensive-writing 的 SKILL.md，精简重复与防御性表达。",
+  "drawio-skill":"读取 drawio-skill 的 SKILL.md，保留可编辑 .drawio 源文件。",
+  matplotlib:"从已核实的实验结果生成图表，同时保存数据与复现脚本。",
+  tectonic:"将已有 LaTeX 源码编译成 PDF，保留源码与编译日志。",
+  drawio:"导出可编辑结构图与矢量图，检查导出结果。",
+  "external-review":"核对评审模型和现有调用预算，按已有授权进行实质审查，保存真实回执。"
+};
+const assistBundles = [
+  {id:"experiment-kit", kind:"experiment", title:"实验运行与结果回收", description:"冻结方案、提交实验、查询状态、回收结果，把代码与指标留在同一条证据链。", stages:["experiment"], status:"项目工具包", evidence:"已有 CLI / MCP 入口；由 Agent 检查运行环境与资源。", links:[{label:"GitHub",url:"https://github.com/ntdaidai/ai2research/blob/main/tools/harness/experiments.py"}], usage:"通过 ai2research 的 prepare_experiment、submit_experiment、get_job_status、collect_job_results 执行。先核对正式实验授权、资源与评价方案，记录真实 job ID，不重复提交已有任务。"},
+  {id:"iteration-kit", kind:"experiment", title:"对照、消融与迭代", description:"对比已有实验，整理消融矩阵，在同一评价协议下验证你的下一步想法。", stages:["iterate"], status:"项目工具包", evidence:"已有结果比较与证据整理入口；不自动运行新实验。", links:[{label:"GitHub",url:"https://github.com/ntdaidai/ai2research/blob/main/tools/harness/evidence.py"}], usage:"使用 compare_jobs、attach_job_evidence、build_experiment_matrix 整理真实结果；新方法先明确变动、对照、消融及停止条件，再在已有授权范围内实施。"},
+  {id:"publication-kit", kind:"mcp", title:"论文组织与稿件编译", description:"组织逐章写作任务、汇总稿件并编译，把结果、图表和引用带入论文。", stages:["draft","polish"], status:"项目工具包", evidence:"已有 publication_plan、assemble_manuscript、compile_paper 入口。", links:[{label:"GitHub",url:"https://github.com/ntdaidai/ai2research/blob/main/tools/harness/publication.py"}], usage:"通过 ai2research 的 publication_plan、assemble_manuscript、compile_paper 整理稿件；先检查实验与引用证据，缺失结果保留待补标记。"}
+];
+const assistStorageKey = "ai2research.assisted-task.v1";
+const assistFields = {title:"assist-title-input",idea:"assist-idea",start:"assist-start",budget:"assist-budget",materials:"assist-materials",intervention:"assist-intervention",deliverable:"assist-deliverable"};
+let assistPhase = "research";
+let assistToolLimit = 12;
+let assistDraft = {title:"",idea:"",start:"survey",budget:"",materials:"",intervention:"",deliverable:"",domain:"all",attach:false,selected:[],checkpoints:["screen","experiment","draft"],custom:[]};
+let assistStorageAvailable = true;
+function safeAssistURL(value) {
+  try { const url = new URL(value); return ["http:","https:"].includes(url.protocol) && !url.username && !url.password ? url.href : ""; } catch { return ""; }
+}
+function loadAssistDraft() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(assistStorageKey) || "null");
+    if (!saved || typeof saved !== "object") return;
+    for (const name of Object.keys(assistFields)) if (typeof saved[name] === "string") assistDraft[name] = saved[name].slice(0, $(assistFields[name]).maxLength > 0 ? $(assistFields[name]).maxLength : 12000);
+    if (!assistSteps.some(s=>s.id===assistDraft.start)) assistDraft.start = "survey";
+    assistDraft.attach = saved.attach === true;
+    if(saved.domain==="all" || assistDomains[saved.domain])assistDraft.domain=saved.domain;
+    if (Array.isArray(saved.selected)) assistDraft.selected = [...new Set(saved.selected.filter(s=>typeof s==="string"))].slice(0,200);
+    if (Array.isArray(saved.checkpoints)) assistDraft.checkpoints = saved.checkpoints.filter(s=>assistSteps.some(step=>step.id===s));
+    if (Array.isArray(saved.custom)) assistDraft.custom = saved.custom.filter(t=>t && typeof t.id==="string" && t.id.startsWith("custom-") && typeof t.title==="string" && typeof t.description==="string" && safeAssistURL(t.links?.[0]?.url) && assistKinds[t.kind] && Array.isArray(t.stages) && t.stages.length && t.stages.every(s=>assistSteps.some(step=>step.id===s))).slice(0,100).map(t=>({id:t.id,kind:t.kind,title:t.title.slice(0,100),description:t.description.slice(0,2000),stages:t.stages,links:[{label:"文档 / 仓库",url:safeAssistURL(t.links[0].url)}],status:"自定义 · 待检查",evidence:"用户提供；Agent 使用前检查连接与调用方式。",usage:t.description.slice(0,2000)}));
+  } catch { assistStorageAvailable = false; }
+}
+function saveAssistDraft() {
+  $("assist-validation").hidden = true;
+  try { localStorage.setItem(assistStorageKey, JSON.stringify(assistDraft)); assistStorageAvailable = true; }
+  catch { assistStorageAvailable = false; }
+  $("assist-save-state").textContent = assistStorageAvailable ? "草稿已保存" : "请下载保存草稿";
+}
+function assistCatalog() {
+  const inventory = (current?.tools?.items || []).map(t=>({...t,stages:assistMapping[t.id] || assistSteps.map(s=>s.id),usage:assistCalls[t.id] || `按 ${t.title} 的官方说明或技能入口使用，检查连接与所需环境。`}));
+  const featured=["research-workflow","lib-elicit","lib-connectedpapers","lib-github-mcp","lib-context7","experiment-kit","lib-mlflow","lib-optuna","matplotlib","publication-kit","lib-overleaf","lib-scientific-skills"];
+  const rank=id=>{const index=featured.indexOf(id);return index<0?featured.length:index;};
+  return [...inventory, ...assistBundles, ...researchLibrary, ...assistDraft.custom].sort((a,b)=>rank(a.id)-rank(b.id));
+}
+function selectedAssistTools() {
+  const catalog = assistCatalog();
+  return assistDraft.selected.map(id=>catalog.find(t=>t.id===id) || {id,title:`未找到的工具：${id}`,kind:"runtime",stages:[],missing:true});
+}
+function toggleAssistTool(id, selected) {
+  assistDraft.selected = selected ? [...new Set([...assistDraft.selected,id])] : assistDraft.selected.filter(s=>s!==id);
+  saveAssistDraft(); renderAssistTools();
+}
+function matchesDomain(tool,domain) {
+  const domains=tool.domains || ["general"];
+  return domain==="all" || domains.includes(domain) || domains.includes("general");
+}
+function fillDomainSelect(id,includeAll=true) {
+  const select=$(id);
+  select.replaceChildren();
+  if(includeAll){const option=element("option","","全部领域");option.value="all";select.append(option);}
+  Object.entries(assistDomains).forEach(([value,title])=>{const option=element("option","",title);option.value=value;select.append(option);});
+}
+function renderOpenLibrary() {
+  const resources=researchLibrary.filter(t=>t.kind==="resource");
+  const domain=$("open-domain").value || "all";
+  const query=$("open-search").value.trim().toLocaleLowerCase();
+  const filtered=resources.filter(t=>matchesDomain(t,domain) && `${t.title} ${t.description}`.toLocaleLowerCase().includes(query));
+  $("open-count").textContent=String(resources.length);
+  $("open-empty").hidden=filtered.length>0;
+  $("open-library").replaceChildren(...filtered.map(tool=>{
+    const card=element("article","tool-card open-resource-card");card.dataset.resourceId=tool.id;
+    card.append(element("h3","",tool.title),element("p","tool-description",tool.description));
+    const sources=element("div","tool-sources");
+    tool.links.forEach(source=>{const link=resourceLink(source.label,source.url,"book");if(link)sources.append(link);});
+    const chosen=assistDraft.selected.includes(tool.id);
+    const button=element("button","text-button",chosen?"已选择":"选择");button.type="button";
+    button.addEventListener("click",()=>{toggleAssistTool(tool.id,!assistDraft.selected.includes(tool.id));renderOpenLibrary();});
+    sources.append(button);card.append(sources);return card;
+  }));
+}
+function applyAssistPreset(name) {
+  const domain=$("starter-domain").value;
+  const label=assistDomains[domain];
+  const domainSources={general:["lib-arxiv","lib-github-topics"],cv:["lib-cvf","lib-openmmlab"],nlp:["lib-acl","lib-sentence-transformers"],llm:["lib-hf-papers","lib-hf-models"],fl:["lib-flower","lib-fedml"],systems:["lib-usenix","lib-artifact-eval"],rl:["lib-gymnasium","lib-lerobot"],data:["lib-openml","lib-uci"],bio:["lib-pubmed","lib-scverse"]};
+  const presets={
+    discover:{title:`${label} · 发现研究问题`,start:"survey",idea:`我目前还没有明确的 idea，希望围绕${label}寻找适合开展的研究问题。请先调研相关论文与开源实现，比较研究空缺、复现成本和可用资源，提出三个可验证的候选想法及其依据，等我选择后再进入实验。`,tools:["research-workflow","arxiv-mcp","lib-connectedpapers","lib-zotero"],deliverable:"文献与开源代码清单、三个候选研究问题、可行性对照及建议下一步。"},
+    validate:{title:`${label} · 验证我的 idea`,start:"screen",idea:`我在${label}领域已经有一个想法，希望先梳理相关工作，确认问题和差异，再制定基线、对照、消融与资源方案。我会补充具体假设和已有材料，请先列出需要补充的关键信息。`,tools:["research-workflow","lib-github-mcp","experiment-kit","iteration-kit","lib-mlflow"],deliverable:"相关工作对照、可执行实验方案、baseline与消融记录、可复现结果和结论。"},
+    publish:{title:`${label} · 整理研究成果`,start:"figure",idea:`我在${label}领域已有实验结果，希望整理成图表和论文。请先盘点结果、日志、方法代码与引用证据，给出图表和章节安排，再按证据完成写作与润色。`,tools:["matplotlib","drawio-skill","publication-kit","nature-polishing","lib-overleaf"],deliverable:"有数据依据的结果图、可编辑方法图、论文章节与引用、论文PDF和必要源码。"}
+  };
+  const preset=presets[name];if(!preset)return;
+  document.querySelectorAll("[data-assist-preset]").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.assistPreset===name)));
+  const hadIdea=Boolean(assistDraft.idea.trim());
+  for(const key of ["title","idea","deliverable"])if(!assistDraft[key].trim()){assistDraft[key]=preset[key];$(assistFields[key]).value=preset[key];}
+  if(!hadIdea){assistDraft.start=preset.start;$("assist-start").value=preset.start;}
+  assistDraft.domain=domain;$("assist-domain").value=domain;
+  assistDraft.selected=[...new Set([...assistDraft.selected,...preset.tools,...(domainSources[domain] || [])])];
+  saveAssistDraft();renderAssistCheckpoints();assistPhase=assistSteps.find(s=>s.id===preset.start).phase;assistToolLimit=12;$("assist-search").value="";$("assist-kind").value="all";renderAssistTools();
+  $("starter-feedback").textContent=`已选择${name==="discover"?"调研":name==="validate"?"验证":"产出"}工具组合。`;
+  $("starter-feedback").hidden=false;
+}
+function renderAssistTools() {
+  const catalog = assistCatalog();
+  const query = $("assist-search").value.trim().toLocaleLowerCase();
+  const kind = $("assist-kind").value;
+  const domain=$("assist-domain").value;
+  const visible = catalog.filter(t=>(assistPhase==="all" || t.stages.some(id=>assistSteps.find(s=>s.id===id)?.phase===assistPhase)) && (kind==="all" || t.kind===kind) && matchesDomain(t,domain) && `${t.title} ${t.id} ${t.description}`.toLocaleLowerCase().includes(query));
+  $("assist-catalog-count").textContent = `${visible.length} / ${catalog.length} 项`;
+  $("assist-show-more").hidden=visible.length<=assistToolLimit;
+  $("assist-show-more").textContent=`查看更多工具与资源（还有 ${Math.max(0,visible.length-assistToolLimit)} 项）`;
+  $("assist-no-tools").hidden = visible.length > 0;
+  $("assist-catalog").replaceChildren(...visible.slice(0,assistToolLimit).map(tool=>{
+    const selected = assistDraft.selected.includes(tool.id);
+    const card = element("article", `assist-tool-card${selected ? " is-selected" : ""}`);
+    card.dataset.assistTool = tool.id;
+    card.dataset.phases = [...new Set(tool.stages.map(id=>assistSteps.find(s=>s.id===id)?.phase))].join(" ");
+    const heading = element("label", "assist-tool-heading");
+    const checkbox = document.createElement("input"); checkbox.type="checkbox"; checkbox.checked=selected; checkbox.setAttribute("aria-label",`选用 ${tool.title}`);
+    checkbox.addEventListener("change", ()=>{toggleAssistTool(tool.id,checkbox.checked); const replacement = [...$("assist-catalog").querySelectorAll("[data-assist-tool]")].find(n=>n.dataset.assistTool===tool.id)?.querySelector("input"); replacement?.focus({preventScroll:true});});
+    heading.append(element("h3","",tool.title), checkbox);
+    card.append(heading,element("p","assist-tool-description",tool.description));
+    const links = element("div","tool-sources");
+    (tool.links || []).forEach(source=>{const link=resourceLink(source.label,source.url,"code"); if(link)links.append(link);});
+    if(tool.id.startsWith("custom-")) {
+      const remove = element("button","text-button","删除自定义工具"); remove.type="button";
+      remove.addEventListener("click",()=>{assistDraft.custom=assistDraft.custom.filter(t=>t.id!==tool.id);if($("assist-search").value===tool.title)$("assist-search").value="";toggleAssistTool(tool.id,false);}); links.append(remove);
+    }
+    const footer=element("div","tool-footer");footer.append(element("span","tool-kind",assistKinds[tool.kind] || "工具"),links);
+    card.append(footer); return card;
+  }));
+  $("assist-selected-count").textContent = String(assistDraft.selected.length);
+  const picks = selectedAssistTools();
+  $("assist-selected").replaceChildren(...(picks.length ? picks.map(tool=>{
+    const row=element("div","selected-tool"); const description=element("div");
+    description.append(element("strong","",tool.title));
+    const remove=element("button","icon-button");remove.type="button";remove.setAttribute("aria-label",`移除 ${tool.title}`);remove.append(icon("close"));remove.addEventListener("click",()=>toggleAssistTool(tool.id,false));row.append(description,remove);return row;
+  }) : [element("p","selected-empty","选择工具加入此处。") ]));
+  document.querySelectorAll("[data-assist-phase]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.assistPhase===assistPhase)));
+}
+function renderAssistCheckpoints() {
+  const start = assistSteps.findIndex(s=>s.id===assistDraft.start);
+  $("assist-checkpoints").replaceChildren(...assistSteps.map((step,index)=>{
+    const row=element("label",`check-row${index<start ? " inactive-step" : ""}`);
+    const check=document.createElement("input");check.type="checkbox";check.value=step.id;check.checked=assistDraft.checkpoints.includes(step.id);check.disabled=index<start;
+    check.addEventListener("change",()=>{assistDraft.checkpoints=check.checked ? [...new Set([...assistDraft.checkpoints,step.id])] : assistDraft.checkpoints.filter(s=>s!==step.id);saveAssistDraft();});
+    row.title=index<start ? "不在本轮范围" : "进入本环节前确认";
+    row.append(check,element("span","",step.title));return row;
+  }));
+}
+function updateAssistContext() {
+  const project=current?.project;
+  const catalog=assistCatalog().filter(t=>!t.id.startsWith("custom-"));
+  $("library-total").textContent=`${catalog.length} 项`;
+  document.body.classList.toggle("assist-attached",assistDraft.attach);
+  $("assist-attach").disabled=!project;
+  $("assist-project-label").textContent=project ? `${project.title}（${project.id}）${project.execution_state==="paused" ? " · 已暂停" : ""}` : "当前没有项目，可创建独立任务文档";
+  renderAssistTools();
+}
+function assistDocument() {
+  const tools = selectedAssistTools();
+  const start = assistSteps.findIndex(s=>s.id===assistDraft.start);
+  const scope = assistSteps.slice(start);
+  const project = assistDraft.attach ? current?.project : null;
+  const lines = ["# Agent 科研任务文档", "", `任务：${assistDraft.title.trim() || "辅助科研任务"}`, "模式：辅助科研（人主导，Agent 按所选工具与本轮范围协作）", "", "## 研究问题与 idea", assistDraft.idea.trim(), "", "## 项目与上下文"];
+  if(project) {
+    lines.push(`关联项目：${project.title}（${project.id}）`, `当前执行状态：${project.execution_state || "未记录"}`, "先读取已有项目状态、交接、作业与证据，从当前记录接续，避免重复运行。");
+    if(project.execution_state==="paused")lines.push("该项目已暂停。本轮只整理方案与已有材料；保持暂停，不提交实验。恢复执行须由用户明确要求。");
+    else lines.push("关联现有项目不表示扩展已有实验授权；沿用已有预算、固定评价与暂停约束。");
+  } else lines.push("独立辅助科研任务。先核查是否已有同题项目；本任务未指定恢复或更改任何现有项目。");
+  lines.push(`研究领域：${assistDomains[assistDraft.domain] || "按研究问题确定"}`, "", "已有材料：",assistDraft.materials.trim() || "尚未提供。先盘点可用论文、代码、数据与实验记录，缺项集中反馈。", "", "## 资源与边界",assistDraft.budget.trim() || "尚未指定实验资源与预算。先给出具体方案和资源需求，待明确实验范围后执行。", "", "## 本轮人工干预",assistDraft.intervention.trim() || "暂无新增干预，按上述 idea 推进。", "若本轮干预改变已有目标、固定评价或资源边界，先说明具体变更并等待确认；保留历史结果与原始记录。", "", "## 已选工具与调用要求");
+  tools.forEach((tool,index)=>{
+    lines.push("",`### ${index+1}. ${tool.title}（${assistKinds[tool.kind]} / ${tool.id}）`,tool.description,`适用环节：${tool.stages.map(id=>assistSteps.find(s=>s.id===id).title).join(" / ")}`,`使用要求：${tool.usage}`);
+    if(tool.links?.length)tool.links.forEach(link=>{const url=safeAssistURL(link.url);if(url)lines.push(`来源（${link.label}）：${url}`);});
+    else lines.push(`来源：${tool.source_note || "本地技能，无公开链接"}；从当前环境的技能入口读取。`);
+  });
+  lines.push("", "## 执行顺序与人工确认点",`本轮从“${scope[0].title}”开始，后续按任务所需推进；已完成的前置环节只核查已有交接。`);
+  scope.forEach(step=>{
+    const matched=tools.filter(t=>t.stages.includes(step.id));
+    lines.push("",`### ${assistPhases[step.phase]} / ${step.title}`,`应交接：${step.output}。`, `对应工具：${matched.length ? matched.map(t=>t.title).join("、") : "本环节未选专用工具。先说明能力缺口，再决定补充工具或使用 Agent 已具备的能力。"}`,assistDraft.checkpoints.includes(step.id) ? "人工确认点：进入本环节前暂停，汇报拟执行内容、依据与待决问题，等待用户确认后继续。" : "按已明确的任务范围与授权推进，结束后简报结果。");
+  });
+  lines.push("", "## 期待的产出",assistDraft.deliverable.trim() || "交付本轮范围内的材料、工具使用记录与下一步建议。", "", "## 交接约定", "1. 按所选工具、Skill、MCP与资料来源的官方说明执行任务，保留调用方式、配置和产物。需要账户或用户操作时说明具体步骤。", "2. 论文主张引用可核查的原文；实验指标对应真实代码、配置、数据和运行记录；保留失败与负结果。", "3. 每次阶段交接记录：当前结论、依据或产物路径、代码/作业版本、人工决定、未完成项与下一步。工具包提供流程能力，不保证实验改进或论文质量。", "4. 接到用户的新 idea 或干预后，先保存当前状态，明确影响范围，更新计划后接续；人工确认点与项目暂停状态持续有效。", "5. 本文档作为Agent任务上下文，执行中反馈实际进展并保存阶段交接。", "");
+  return lines.join("\n");
+}
+function validateAssist() {
+  let message="";
+  if(!assistDraft.idea.trim())message="先填写你的 idea / 研究问题。";
+  else if(!assistDraft.selected.length)message="至少选择一个工具，再生成任务文档。";
+  else if(selectedAssistTools().some(t=>t.missing))message="所选清单中有当前未找到的工具，请移除后重新选择。";
+  else if(assistDraft.attach && !current?.project)message="暂时无法读取关联项目，请刷新记录或取消关联。";
+  $("assist-validation").textContent=message;$("assist-validation").hidden=!message;
+  if(message){$("assist-validation").scrollIntoView({block:"center",behavior:"instant"});return false;}return true;
+}
+function downloadAssistDocument() {
+  if(!validateAssist())return;
+  const blob = new Blob([assistDocument()],{type:"text/markdown;charset=utf-8"});
+  const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download="AGENT_TASK.md";document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function initAssist() {
+  loadAssistDraft();
+  fillDomainSelect("starter-domain",false);fillDomainSelect("assist-domain");fillDomainSelect("open-domain");
+  $("assist-domain").value=assistDraft.domain;
+  $("starter-domain").value=assistDraft.domain==="all"?"general":assistDraft.domain;
+  for(const [name,id] of Object.entries(assistFields)) {
+    $(id).value=assistDraft[name];
+    $(id).addEventListener("input",()=>{assistDraft[name]=$(id).value;saveAssistDraft();if(name==="start")renderAssistCheckpoints();});
+  }
+  $("assist-attach").checked=assistDraft.attach;
+  $("assist-attach").addEventListener("change",()=>{assistDraft.attach=$("assist-attach").checked;document.body.classList.toggle("assist-attached",assistDraft.attach);saveAssistDraft();});
+  if(!assistStorageAvailable)$("assist-save-state").textContent="当前无法读取草稿，请及时下载文档";
+  document.querySelectorAll("[data-assist-phase]").forEach(b=>b.addEventListener("click",()=>{assistPhase=b.dataset.assistPhase;assistToolLimit=12;renderAssistTools();}));
+  $("assist-search").addEventListener("input",()=>{assistToolLimit=12;renderAssistTools();});$("assist-kind").addEventListener("change",()=>{assistToolLimit=12;renderAssistTools();});
+  $("assist-domain").addEventListener("change",()=>{assistDraft.domain=$("assist-domain").value;$("starter-domain").value=assistDraft.domain==="all"?"general":assistDraft.domain;assistToolLimit=12;saveAssistDraft();renderAssistTools();});
+  $("assist-show-more").addEventListener("click",()=>{assistToolLimit+=12;renderAssistTools();});
+  $("tools-show-more").addEventListener("click",()=>{resourceToolLimit+=18;renderResources(current || {});});
+  $("resource-kind").addEventListener("change",()=>{toolFilter=$("resource-kind").value;resourceToolLimit=18;renderResources(current || {});});
+  $("resource-stage").addEventListener("change",()=>{resourcePhase=$("resource-stage").value;resourceToolLimit=18;renderResources(current || {});});
+  $("resource-search").addEventListener("input",()=>{resourceToolLimit=18;renderResources(current || {});});
+  document.querySelectorAll("[data-home-phase]").forEach(link=>link.addEventListener("click",()=>{assistPhase=link.dataset.homePhase;assistToolLimit=12;$("assist-search").value="";$("assist-kind").value="all";renderAssistTools();}));
+  $("open-domain").addEventListener("change",renderOpenLibrary);$("open-search").addEventListener("input",renderOpenLibrary);
+  document.querySelectorAll("[data-assist-preset]").forEach(b=>b.addEventListener("click",()=>applyAssistPreset(b.dataset.assistPreset)));
+  $("assist-preview").addEventListener("click",()=>{if(!validateAssist())return;$("assist-document").value=assistDocument();$("assist-copy-status").textContent="";$("assist-document-dialog").showModal();});
+  $("assist-download").addEventListener("click",downloadAssistDocument);$("assist-document-download").addEventListener("click",downloadAssistDocument);
+  $("assist-copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText($("assist-document").value);$("assist-copy-status").textContent="完整文档已复制，粘贴到 Agent 对话即可。";}catch{$("assist-document").focus();$("assist-document").select();$("assist-copy-status").textContent="当前浏览器未允许直接复制，已选中全文，可按 Ctrl+C 或长按复制。";}});
+  $("assist-example").addEventListener("click",()=>{
+    const example={title:"视觉异常检测 · 想法验证（演示任务）",idea:"我想验证：在冻结视觉特征上加入轻量特征校正，能否在计算开销基本不变的前提下改善异常检测？请先调研相关方法、筛选可复现基线，再给出实验方案。此处仅为任务示例，尚未执行。",budget:"先调研和设计实验；拟用单卡、最多 2 小时。正式提交前确认数据、评价协议与具体预算。",deliverable:"文献与基线对照表、实验方案、可复现的运行记录、结果图与结论草稿。"};
+    for(const [name,value] of Object.entries(example))if(!assistDraft[name].trim()){assistDraft[name]=value;$(assistFields[name]).value=value;}
+    assistDraft.selected=[...new Set([...assistDraft.selected,"research-workflow","arxiv-mcp","experiment-kit","matplotlib"])];saveAssistDraft();renderAssistTools();
+  });
+  $("custom-tool-form").addEventListener("submit",event=>{
+    event.preventDefault();const url=safeAssistURL($("custom-url").value);const title=$("custom-name").value.trim();const description=$("custom-description").value.trim();
+    if(!url || !title || !description){$("custom-error").textContent="填写名称、简介，并提供 http 或 https 文档链接。";$("custom-error").hidden=false;return;}
+    const phase=$("custom-phase").value;const tool={id:`custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`,kind:$("custom-kind").value,title,description,usage:description,stages:assistSteps.filter(s=>s.phase===phase).map(s=>s.id),status:"自定义 · 待检查",evidence:"用户提供；Agent 使用前检查连接与调用方式。",links:[{label:"文档 / 仓库",url}]};
+    assistDraft.custom.push(tool);assistDraft.selected.push(tool.id);$("custom-tool-form").reset();$("custom-error").hidden=true;assistPhase="all";assistToolLimit=12;$("assist-search").value=tool.title;$("assist-kind").value="all";$("assist-domain").value="all";assistDraft.domain="all";saveAssistDraft();renderAssistTools();
+  });
+  renderAssistCheckpoints();updateAssistContext();renderOpenLibrary();
+}
+initAssist();
 setNavigation();
 load();
 

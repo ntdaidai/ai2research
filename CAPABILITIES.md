@@ -15,8 +15,8 @@ ai2research 是由研究助手驱动的科研工作台。当前主要以 Codex �
 | 论文与图表 | 分章任务、共享术语与主张、TeX 整合、通用或 IEEE 会议格式、PDF 编译、可编辑 draw.io 图和数据图 | `publication_plan`、`assemble_manuscript`、`export_project_diagram`、`export_results_figure` |
 | 正式交付 | 核对当前代码、数据来源、图稿与双审覆盖，生成带清单和摘要的交付 ZIP | `export_delivery` |
 | 持久记录 | SQLite 事件、任务与产物状态，交接快照、增量日志和失败经验；断开对话后保留 | `project_overview`、`process_log`、`maintenance_status` |
-| 展示页面 | 总览、研究进度、成果、工具与资料四页；12 环节及完成依据、论文 PDF/GitHub、工具来源、手机布局 | `showcase`、`tools/export_showcase_static.py` |
-| 部署与迁移 | 独立环境、锁定依赖、技能安装、stdio MCP 配置、实时页面或纯静态快照、Linux 用户级常驻服务 | `tools/bootstrap_linux.sh`、`tools/configure_harness_mcp.py`、`tools/deploy_showcase.py` |
+| 展示页面 | 工作台、辅助科研、全流程科研、研究进度、成果、工具与资料六页；111项目录、9领域、任务文档、人工确认点、12环节与真实成果 | `showcase`、`tools/export_showcase_static.py` |
+| 部署与迁移 | 独立环境、锁定依赖、技能安装、stdio MCP 配置、实时页面或纯静态快照、Linux 用户级常驻服务 | `1_install.cmd`、`2_start.cmd`、`tools/bootstrap_linux.sh`、`tools/configure_harness_mcp.py`、`tools/deploy_showcase.py` |
 
 ## 使用前需要接入什么
 
@@ -27,10 +27,10 @@ ai2research 是由研究助手驱动的科研工作台。当前主要以 Codex �
 
 ## 当前产品范围
 
-当前版本适合单用户或小团队在自己的服务器上，用研究助手推进可追溯的课题。网页用于查看；纯静态部署需重新导出以更新研究状态。实验启动、评审和写作由研究对话或 CLI/MCP 驱动。
+当前版本适合单用户或小团队在自己的服务器上，用研究助手推进可追溯的课题。网页支持选配工具、输入idea与干预、导出Agent任务文档，以及查看记录；纯静态部署需重新导出以更新研究状态。实验启动、评审和写作由研究对话或 CLI/MCP 驱动。
 
 尚未提供账号权限系统、多人在线编辑、浏览器内直接启动研究、无人值守科研主控，或免配置的一键多服务器迁移。Optuna 存在工具验收入口，具体方法搜索由研究助手组织。
 
-公开仓库包含框架、技能、测试、模板与合成页面演示。私人密钥、运行状态库、数据集、模型权重和真实课题稿件由使用者单独保存。
+公开仓库包含框架、技能、测试、模板与没有研究记录的公开工具目录演示。私人密钥、运行状态库、数据集、模型权重和真实课题稿件由使用者单独保存。
 
 验证命令与记录见 [README](README.md#validation) 和 [VALIDATION.md](VALIDATION.md)。

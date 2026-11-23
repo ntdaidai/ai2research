@@ -238,7 +238,7 @@ def make_server(host="127.0.0.1", port=8765, *, directory=None, project_id=None)
                                                                      query.get("id", [""])[0])
                     return self._respond(200, content, content_type, filename=filename)
                 assets = {"/": "index.html", "/index.html": "index.html", "/style.css": "style.css",
-                          "/app.js": "app.js", "/favicon.svg": "favicon.svg"}
+                          "/app.js": "app.js", "/catalog.js": "catalog.js", "/favicon.svg": "favicon.svg"}
                 if route.path not in assets:
                     return self._json(404, {"error": "Not found"})
                 asset = WEB / assets[route.path]

@@ -1,0 +1,15 @@
+ai2research Windows 迁移版
+
+先把整个 ZIP 解压，再使用下面的入口：
+
+1_install.cmd       首次安装 Python 与依赖，需要联网，无需管理员权限。
+2_start.cmd         打开本机科研工作台；使用时保留终端窗口。
+3_connect_codex.cmd  按需安装项目技能并登记 MCP，然后刷新或重启 Codex。
+4_check.cmd         检查页面、CLI 和 MCP，回执位于 .local/install-check.json。
+
+完整说明：WINDOWS_QUICKSTART.md
+状态与目录迁移：MIGRATION.md
+
+前端支持没有idea、已有idea、已有结果三种起点，工具与资源按调研、实现、产出浏览。
+Windows可运行工作台与科研主控接口，框架实验worker需配置Linux服务器或WSL。
+这是干净的源码包，其他人的凭据、课题、数据库、数据集与模型没有放入包内。

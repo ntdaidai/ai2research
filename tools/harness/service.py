@@ -12,7 +12,7 @@ import shutil
 import subprocess
 import sys
 import uuid
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from .state import ROOT, config, connect, events, local_dir, now, record, reserve_review, review_limit, transport
 
@@ -301,7 +301,8 @@ async def research_cycle(action: str, project_id: str = "paper-research", cycle_
 def _remote(request):
     cfg = config()["remote"]
     # Until a separate home is explicitly configured in the worker, fail closed.
-    if Path(cfg["allowed_home"]).name in ("", ".", "..") or Path(cfg["workspace"]) != Path(cfg["allowed_home"]) / ".research-harness":
+    remote_home = PurePosixPath(cfg["allowed_home"])
+    if not remote_home.is_absolute() or ".." in remote_home.parts or remote_home.name in ("", ".", "..") or PurePosixPath(cfg["workspace"]) != remote_home / ".research-harness":
         raise ValueError("Remote workspace differs from authorized the configured user home scope")
     worker_path = Path(__file__).with_name("remote_worker.py")
     worker = worker_path.read_bytes()
